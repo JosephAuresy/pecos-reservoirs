@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pecos Reservoirs — Management &amp; Reuse Lab</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+  :root{
+    --bg:#0e1726;--panel:#16233a;--panel2:#111d30;--ink:#e8eef7;--mut:#8fa3bf;
+    --acc:#4cc9f0;--warn:#f4a261;--good:#28e07c;--bad:#d62828;--line:#22344f;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;font-family:'Segoe UI',system-ui,sans-serif;}
+  body{background:var(--bg);color:var(--ink);padding:14px 16px 40px;}
+  a{color:var(--acc);}
+  h1{font-size:1.35rem;} h1 span{color:var(--acc);}
+  h2{font-size:1rem;color:var(--acc);margin:2px 0 8px;}
+  h3{font-size:.88rem;color:var(--ink);margin:10px 0 4px;}
+  .sub{color:var(--mut);font-size:.85rem;margin:4px 0 12px;max-width:920px;line-height:1.5;}
+  .badge{display:inline-block;background:var(--panel2);border:1px solid var(--line);color:var(--mut);
+    border-radius:20px;padding:2px 10px;font-size:.72rem;margin-right:6px;}
+  .tabs{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 14px;border-bottom:1px solid var(--line);padding-bottom:10px;}
+  .tabbtn{background:var(--panel2);border:1px solid var(--line);color:var(--mut);font-weight:600;
+    padding:8px 14px;border-radius:8px;cursor:pointer;font-size:.85rem;}
+  .tabbtn.on{background:var(--acc);color:#06263a;border-color:var(--acc);}
+  .pane{display:none;} .pane.on{display:block;}
+  .wrap{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-start;}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;max-width:100%;}
+  .panel.grow{flex:1;min-width:min(340px,100%);}
+  .row{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:8px 0;font-size:.85rem;}
+  .row label{flex:1.3;color:var(--mut);}
+  .row input[type=range]{flex:1.4;accent-color:var(--acc);}
+  .row select{flex:1.4;background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:5px 6px;}
+  .row .val{min-width:78px;text-align:right;font-variant-numeric:tabular-nums;color:var(--ink);font-weight:600;}
+  button{background:var(--acc);border:0;color:#06263a;font-weight:700;padding:7px 14px;border-radius:6px;cursor:pointer;font-size:.82rem;}
+  button.alt{background:#26354f;color:var(--ink);font-weight:500;}
+  button.sm{padding:5px 9px;font-size:.75rem;}
+  canvas{background:#0a111e;border-radius:8px;max-width:100%;}
+  #map{height:480px;border-radius:10px;background:#0a111e;}
+  table{border-collapse:collapse;width:100%;font-size:.78rem;margin:6px 0;table-layout:auto;}
+  th,td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;overflow-wrap:anywhere;}
+  code{overflow-wrap:anywhere;}
+  th{color:var(--acc);font-weight:600;}
+  td.num{text-align:right;font-variant-numeric:tabular-nums;}
+  .stat{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:10px;text-align:center;}
+  .stat b{display:block;font-size:1.15rem;color:var(--acc);}
+  .stat span{color:var(--mut);font-size:.7rem;}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin:10px 0;}
+  .riskbar{height:14px;border-radius:7px;background:var(--panel2);overflow:hidden;border:1px solid var(--line);margin:6px 0;}
+  .riskfill{height:100%;transition:width .25s;}
+  .risktext{font-size:.9rem;font-weight:700;margin-top:4px;}
+  .note{font-size:.78rem;color:var(--mut);line-height:1.55;margin:6px 0;}
+  .callout{background:var(--panel2);border-left:3px solid var(--acc);border-radius:6px;padding:10px 12px;font-size:.82rem;color:var(--ink);line-height:1.55;margin:8px 0;}
+  .callout.warn{border-color:var(--warn);}
+  .callout.bad{border-color:var(--bad);}
+  .callout.good{border-color:var(--good);}
+  details{margin-top:8px;} summary{cursor:pointer;color:var(--warn);font-size:.85rem;font-weight:600;}
+  details p, details li{color:var(--mut);margin:5px 0;line-height:1.55;font-size:.82rem;}
+  ul{padding-left:18px;}
+  .legend{display:flex;gap:12px;flex-wrap:wrap;font-size:.74rem;color:var(--mut);margin-top:6px;}
+  .chip{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:4px;vertical-align:-1px;}
+  .footer{color:var(--mut);font-size:.72rem;text-align:center;margin-top:26px;border-top:1px solid var(--line);padding-top:12px;}
+  .leaflet-popup-content{font-size:.8rem;line-height:1.5;}
+  .crumb{margin-bottom:6px;font-size:.8rem;color:var(--mut)}
+</style>
+</head>
+<body>
+
+
+<div class="crumb">Part of the <a href="https://txpwc-dashboard.streamlit.app/" target="_blank" rel="noopener">TxPWC Dashboard</a> &middot; companion to the <a href="https://josephauresy.github.io/pecos-salinity-lab/" target="_blank" rel="noopener">🧪 Salinity Lab</a></div>
+<h1>Pecos Reservoirs <span>· Management &amp; Reuse Lab</span></h1>
+<div class="sub">
+  <span class="badge">Companion to the Salinity Lab</span>
+  <span class="badge">Real data 2000–2020</span>
+  <span class="badge">SWAT+ gwflow · Pecos_USA</span><br><br>
+  Interactive tool for thinking through <b>where reuse water</b> (treated oilfield produced water, or recycled municipal water) <b>could go</b> along the Pecos River,
+  using the real management history of the 5 major dams — Santa Rosa, Sumner, Brantley, Avalon, and Red Bluff — between New Mexico and Texas.
+  In <b>Flow &amp; Management</b> you can test your own release policy for any dam (or try a one-click scenario) and watch the river — drawn as a single connected line through all 5 dams — light up or go dark; in
+  <b>Where to Place Reuse Water</b> that same river diagram turns green/yellow/red so you can click a stretch directly. Once the SWAT+/gwflow model of the Pecos is finished, the simplified "dilution capacity" indicator here will be replaced by reach-by-reach simulated salt transport from the
+  <a href="https://josephauresy.github.io/pecos-salinity-lab/" target="_blank" rel="noopener">Salinity Lab</a>, closing the loop between reservoir management and optimal reuse siting.
+</div>
+
+<div class="tabs">
+  <button class="tabbtn on" data-tab="mapa">🗺️ Reservoir Map</button>
+  <button class="tabbtn" data-tab="manejo">📊 Flow &amp; Management</button>
+  <button class="tabbtn" data-tab="reuso">🛢️ Where to Place Reuse Water</button>
+  <button class="tabbtn" data-tab="sal">🐟 Salinity &amp; Fish</button>
+  <button class="tabbtn" data-tab="fuentes">📎 Sources &amp; Method</button>
+</div>
+
+<!-- ===================== TAB: MAP ===================== -->
+<div class="pane on" id="tab-mapa">
+  <div class="wrap">
+    <div class="panel grow" style="min-width:min(520px,100%)">
+      <h2>The 5 dams of the Pecos (NM → TX)</h2>
+      <div class="note">Real locations from <code>reservoir.con</code> in the SWAT+ gwflow model (Pecos_USA). Marker size/color reflects mean release 2000–2020 (Mm³/yr). Click any dam or context marker for details. The 🛢️ marker is a <b>candidate reuse site</b> — drag it along the river.</div>
+      <div id="map"></div>
+      <div class="legend">
+        <span><span class="chip" style="background:#4cc9f0"></span>Dam (NM)</span>
+        <span><span class="chip" style="background:#f4a261"></span>Dam (TX/NM, Red Bluff)</span>
+        <span><span class="chip" style="background:#d62828"></span>Documented natural salinity source</span>
+        <span><span class="chip" style="background:#28e07c"></span>Pecos pupfish current range (verified)</span>
+        <span>🛢️ reuse candidate site (draggable)</span>
+      </div>
+    </div>
+    <div class="panel" style="width:340px;min-width:0;max-width:100%">
+      <h2>Reservoir data summary</h2>
+      <table id="tbl-dams"></table>
+      <div class="note">cms = mean flow, m³/s. Mm³/yr = million m³ per year, 2000–2020 average. "Official capacity" is the publicly documented storage capacity (see Sources tab) — not the same as the 2000–2020 observed maximum used elsewhere in this lab.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== TAB: MANAGEMENT ===================== -->
+<div class="pane" id="tab-manejo">
+  <div class="panel" style="margin-bottom:14px">
+    <h2>Timeline — 2000 to 2020 (252 months, observed data)</h2>
+    <div class="row">
+      <label>Month</label>
+      <input type="range" id="month" min="0" max="251" step="1" value="140">
+      <div class="val" id="monthLbl"></div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:4px">
+      <button id="playBtn" class="alt sm">▶ Play</button>
+      <button id="prevBtn" class="alt sm">◀ month</button>
+      <button id="nextBtn" class="alt sm">month ▶</button>
+      <span class="note" style="align-self:center;margin:0">Drag the month or hit play to watch how the 5 dams were actually managed — including the 2011–2013 drought.</span>
+    </div>
+  </div>
+
+  <div class="panel" style="margin-bottom:14px">
+    <h2>1. See the river, right now</h2>
+    <div class="note">The 5 dams, connected in order down the Pecos, Santa Rosa (NM) to Red Bluff (TX/NM). <b>Thicker and brighter = more water flowing that month.</b> This updates live as you move the timeline above or change any dam's rule further down. <b>Click any dam circle to open its full history and zoom in.</b></div>
+    <svg id="riverFlowSvg" viewBox="0 0 900 115" style="width:100%;height:auto;max-height:150px"></svg>
+  </div>
+
+  <div class="panel" style="margin-bottom:14px">
+    <h2>2. Dam status this month</h2>
+    <div class="stats" id="damCards"></div>
+    <div class="note">Release = observed monthly release (Mm³), or your custom-rule release for any dam where you've enabled one (marked ✎). Storage % = relative to that dam's own 2000–2020 observed maximum (not its official design capacity — see Sources tab for real capacity figures, since some dams, like Brantley, hold a huge flood pool that is almost never filled).</div>
+  </div>
+
+  <div class="panel" style="margin-bottom:14px">
+    <h2>3. Release history — all 5 dams at once</h2>
+    <div class="note">Same time axis (2000–2020) for all five, so you can compare one dam to another without losing track of what you just saw. <span class="chip" style="background:#4a5a78;border-radius:2px"></span> historical (observed) <span class="chip" style="background:#4cc9f0;border-radius:2px"></span> your rule (if enabled). The vertical line marks the active month. Notice how Avalon and Brantley drop to near zero in 2011–2013 while Red Bluff never quite does — the New Mexico/Texas drought hit the upstream dams hardest. <b>Click any chart to open it full-size and zoom in</b> (drag across it to select a date range).</div>
+    <div id="tsGrid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-top:8px"></div>
+  </div>
+
+  <div class="panel" style="margin-bottom:14px">
+    <h2>4. Try a scenario</h2>
+    <div class="note">Not sure where to start? Click one of these — each sets up a specific policy across the dams so you can see the effect right away in the river diagram above.</div>
+    <div id="scenarioBtns" style="display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 0"></div>
+    <div class="callout" id="scenarioExplain" style="display:none;margin-top:10px"></div>
+  </div>
+
+  <div class="panel" style="margin-bottom:14px;overflow-x:auto">
+    <h2>5. Or adjust each dam by hand</h2>
+    <div class="callout">
+      <b>What these controls mean:</b>
+      <ul style="margin:6px 0 0 18px">
+        <li><b>Custom rule</b> — turn this on for a dam to test a <i>different</i> way it could be operated, instead of exactly what happened historically. Leave it off to keep using the real record for that dam.</li>
+        <li><b>Scale</b> — how much more or less water that dam releases each month, as a percent of what it actually released historically. 100% = no change. 150% = one-and-a-half times as much every month. 50% = half as much.</li>
+        <li><b>Min. floor</b> — a guaranteed minimum amount of water that dam must release every month, no matter how dry it gets — even in months when it historically released almost nothing. This works like a minimum-instream-flow rule that protects the river downstream.</li>
+      </ul>
+      <p style="margin-top:8px"><b>Turning on the rule for one dam</b> only changes the river reach right below that dam (and everything further downstream, until the next dam re-regulates the water). <b>Turning on several dams at once</b> lets you test a whole basin-wide policy — for example, guaranteeing a minimum flow everywhere.</p>
+    </div>
+    <table id="tbl-rules" style="min-width:640px"></table>
+    <button id="ruleResetAll" class="alt sm" style="margin-top:6px">↺ Reset all 5 dams to historical</button>
+  </div>
+</div>
+
+<!-- ===================== TAB: REUSE SITING ===================== -->
+<div class="pane" id="tab-reuso">
+  <div class="panel" style="margin-bottom:14px">
+    <h2>Click a stretch of river to test it</h2>
+    <div class="note"><span class="chip" style="background:#28e07c"></span> Green = plenty of water to dilute your proposed reuse volume this month. <span class="chip" style="background:#f4a261"></span> Yellow = getting tight. <span class="chip" style="background:#d62828"></span> Red = little or none. Click any colored stretch below to load it into the panel — or use the dropdown. The white dashed outline marks the stretch you're currently looking at.</div>
+    <svg id="riverRiskSvg" viewBox="0 0 900 115" style="width:100%;height:auto;max-height:150px"></svg>
+  </div>
+  <div class="wrap">
+    <div class="panel" style="width:380px;min-width:0;max-width:100%">
+      <h2>Candidate reuse site</h2>
+      <div class="row"><label>River reach</label>
+        <select id="reachSelect"></select>
+      </div>
+      <div class="row"><label>Proposed reuse volume</label>
+        <input type="range" id="volSlider" min="0.5" max="30" step="0.5" value="5">
+        <div class="val" id="volLbl">5.0 Mm³/yr</div>
+      </div>
+      <div class="note">"Reuse volume" stands for treated produced water (or recycled municipal water) that would be returned to the river or infiltrated near the channel in that reach — the same concept explored in the Salinity Lab. It is always added <b>after</b> (downstream of) the reach's upstream dam, on top of whatever that dam releases.</div>
+      <div class="note">The active month is shared with the <b>Flow &amp; Management</b> tab. Current month: <b id="reusoMonthLbl"></b>.</div>
+      <div class="callout" id="ruleBadge" style="font-size:.78rem;padding:8px 10px"></div>
+      <h3>Result for the active month</h3>
+      <div class="stats">
+        <div class="stat"><b id="rFlow">–</b><span>dam release feeding this reach (Mm³/mo)</span></div>
+        <div class="stat"><b id="rReuse">–</b><span>proposed reuse (Mm³/mo)</span></div>
+        <div class="stat"><b id="rTotal">–</b><span>total reach flow after reuse (Mm³/mo)</span></div>
+        <div class="stat"><b id="rPct">–</b><span>reuse as % of dam release</span></div>
+      </div>
+      <div class="riskbar"><div class="riskfill" id="riskFill" style="width:0%;background:var(--good)"></div></div>
+      <div class="risktext" id="riskText">–</div>
+      <div class="callout" id="riskCallout"></div>
+    </div>
+    <div class="panel grow" style="min-width:min(420px,100%)">
+      <h2>How often would this reach be risky? (full 2000–2020 record)</h2>
+      <div class="note">Instead of looking at just one month, this uses the full <b>252 months of real data</b> for the chosen reach to count how often your proposed volume would exceed different flow thresholds — i.e., how often this site would have had little dilution capacity. The chart below always reflects your <b>current rule settings</b> (historical if you haven't changed anything).</div>
+      <canvas id="freqCanvas" width="640" height="220"></canvas>
+      <div class="stats" id="freqStats"></div>
+      <div class="callout" id="ruleCompare" style="display:none"></div>
+      <div class="callout warn">
+        <b>How to read this:</b> a "good" reuse site is one where the % of months in the red zone is low — a reach with high, stable flow most of the year. A reach that turns red often (especially in 2011–2013, or in summer) needs a smaller reuse volume, additional treatment, relocation downstream of a dam with steadier releases, <b>or a minimum-release rule on the upstream dam</b> — try setting a floor on the Flow &amp; Management tab and watch these numbers change.
+      </div>
+      <details>
+        <summary>Exactly how is this computed?</summary>
+        <p>For each of the 252 months with valid data: <code>ratio = (reuse_volume/12) / dam_release_that_month</code>. The dam release is the observed historical value, or your custom rule's output for that dam if you've enabled one — either way it's the release of the dam <b>immediately upstream</b> of that reach (for the reach below Red Bluff, Red Bluff's own release/rule is used as a lower bound — there are unmeasured additional inflows further downstream, so the real risk there is likely lower than shown).</p>
+        <p><b>Green</b> = ratio &lt; 2% (high dilution). <b>Yellow</b> = 2–10% (moderate). <b>Red</b> = &gt;10%, or flow ≈ 0 (minimal or no dilution).</p>
+        <p>This is a water-quantity proxy, <b>not</b> a salt-transport model — it does not account for background concentration, mixing time, or river–aquifer exchange. That step belongs to the Salinity Lab (SWAT+/gwflow).</p>
+      </details>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== TAB: SALINITY ===================== -->
+<div class="pane" id="tab-sal">
+  <div class="wrap">
+    <div class="panel grow" style="min-width:min(420px,100%)">
+      <h2>The Pecos is already a salty river — before adding anything</h2>
+      <p class="note">Much of the Pecos basin in New Mexico and Texas crosses Permian evaporite formations (Rustler and Salado): salt and gypsum that groundwater dissolves as it circulates. Where that saline water surfaces or connects with the river — notably at <b>Malaga Bend</b>, about 18 miles southeast of Carlsbad, NM — the river receives a documented natural brine load far above background.</p>
+      <div class="callout bad">
+        <b>Documented brine source — Malaga Bend.</b> USGS studies attribute the salinity here to brine leaking upward from a confined aquifer at the base of the Rustler Formation, mixing with fresher shallow groundwater and discharging to the Pecos at roughly <b>0.5 cubic feet per second of saturated brine</b> in this reach — enough to measurably raise river TDS. USGS field-tested a brine-diversion approach here decades ago under the <i>Malaga Bend Experimental Salinity Alleviation Project</i>, one of the earliest documented attempts to intervene in the Pecos's natural salt budget.
+      </div>
+      <div class="callout good">
+        <b>Fish don't see it the same everywhere.</b> The Pecos pupfish (<i>Cyprinodon pecosensis</i>) — a fish found only in the Pecos drainage — currently persists in the <b>upper basin</b>, from Bitter Lake National Wildlife Refuge (near Roswell, NM) down to just north of Brantley Reservoir. It has been <b>eliminated from the middle and lower Pecos</b>, including the reach through Malaga Bend and Red Bluff, where high natural salinity is one of the documented pressures. In November 2024, the U.S. Fish &amp; Wildlife Service proposed listing it as Threatened under the Endangered Species Act, with critical habitat covering about 136 river miles and 26,555 acres across New Mexico and a Texas population in Salt Creek — not yet finalized as of this writing.
+      </div>
+      <p class="note">This tab is <b>informational</b>: exact brine flow rates, remediation outcomes, and the final ESA listing/critical-habitat status should be verified against the official sources below before being used in a report or decision — the point here is that whoever plays with this map knows the salinity problem, and the fish response to it, are real and already documented.</p>
+    </div>
+    <div class="panel" style="width:340px;min-width:0;max-width:100%">
+      <h2>Why this doesn't compute salt (yet)</h2>
+      <p class="note">This lab uses <b>real flow</b> (Mm³/month released by each dam) as a proxy for dilution capacity. It doesn't move TDS, doesn't know whether a reach is gaining or losing groundwater, and doesn't know the background salt load in each reach.</p>
+      <p class="note">That's exactly what the <b>Salinity Lab</b> (gwflow + SWAT+) does: advection–dispersion transport of TDS, river–aquifer exchange via streambed conductance, and comparison against EPA/agricultural/livestock thresholds.</p>
+      <div class="callout">
+        <b>The integration plan:</b> once the SWAT+/gwflow model of the Pecos (346×227 cells, 2 km) is calibrated using these same observed releases as its flow forcing, every reach between dams will have a simulated TDS concentration. That number replaces the "% of flow" indicator in the previous tab with a real result: how much reuse water a reach can actually take <b>without exceeding</b> the TDS threshold that affects the Pecos pupfish or downstream uses.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== TAB: SOURCES ===================== -->
+<div class="pane" id="tab-fuentes">
+  <div class="panel grow" style="min-width:min(420px,100%)">
+    <h2>Data sources used in this lab</h2>
+    <table>
+      <tr><th>Data</th><th>File / origin</th><th>Coverage</th></tr>
+      <tr><td>Dam coordinates &amp; metadata</td><td><code>gwflow/TxtInOut_gwflow/reservoir.con</code> (SWAT+ editor, rev.61.0.2)</td><td>1 record per dam</td></tr>
+      <tr><td>Observed daily release</td><td><code>obs_reservoir/obs_release_*.csv</code> — USGS gage proxy</td><td>2000-01-01 → 2020-12-31, daily</td></tr>
+      <tr><td>Observed daily storage</td><td><code>obs_reservoir/obs_storage_*.csv</code> — GDROM (NM) / TWDB waterdatafortexas.org (Red Bluff, TX)</td><td>Santa Rosa/Sumner/Brantley/Avalon: 2000–2017 · Red Bluff: 2000–2020</td></tr>
+      <tr><td>Gage &amp; period summary</td><td><code>obs_reservoir/calibration_data_summary.csv</code></td><td>1 row per dam</td></tr>
+      <tr><td>Simulated SWAT+ water balance (reference)</td><td><code>gwflow/TxtInOut_gwflow/reservoir_aa.txt</code></td><td>annual average, final run year</td></tr>
+    </table>
+
+    <h3 style="margin-top:16px">Flow &amp; storage gages per dam</h3>
+    <table id="tbl-gages"></table>
+
+    <h3 style="margin-top:16px">Official storage capacity per dam (public record)</h3>
+    <table id="tbl-capacity"></table>
+    <div class="note">These figures are the publicly documented design/storage capacities, not the 2000–2020 observed maximum used for the live "% of storage" gauges elsewhere in this lab. Two notes: Brantley's 335,054 af figure is its <b>flood-control allocation</b>, which is rarely filled in normal operation — day-to-day storage is a small fraction of it. Avalon's capacity has shrunk from an original ~7,000 af (1907) to 4,466 af per a 1996 resurvey (sedimentation).</div>
+
+    <h3 style="margin-top:16px">Malaga Bend &amp; Pecos pupfish — verified references</h3>
+    <ul class="note">
+      <li><a href="https://www.usgs.gov/publications/experimental-salinity-alleviation-malaga-bend-pecos-river-eddy-county-new-mexico" target="_blank" rel="noopener">USGS — Experimental Salinity Alleviation, Malaga Bend, Pecos River, Eddy County, New Mexico</a></li>
+      <li><a href="https://pubs.usgs.gov/publication/ofr6535" target="_blank" rel="noopener">USGS Open-File Report — A progress report on the Malaga Bend Experimental Salinity Alleviation Project</a></li>
+      <li><a href="https://waterdata.usgs.gov/monitoring-location/USGS-08406500/" target="_blank" rel="noopener">USGS gage 08406500 — Pecos River near Malaga, NM</a> (used here as the Malaga Bend map marker, 32.2075°N, 104.0239°W)</li>
+      <li><a href="https://www.fws.gov/species/pecos-pupfish-cyprinodon-pecosensis" target="_blank" rel="noopener">U.S. Fish &amp; Wildlife Service — Pecos Pupfish (Cyprinodon pecosensis) species page</a></li>
+      <li><a href="https://www.federalregister.gov/documents/2024/11/22/2024-27127/endangered-and-threatened-wildlife-and-plants-threatened-species-status-with-section-4d-rule-for" target="_blank" rel="noopener">Federal Register, Nov 22 2024 — proposed Threatened status &amp; critical habitat for the Pecos pupfish</a></li>
+      <li><a href="https://www.fws.gov/refuge/bitter-lake" target="_blank" rel="noopener">U.S. Fish &amp; Wildlife Service — Bitter Lake National Wildlife Refuge</a> (33.4560°N, 104.4017°W)</li>
+    </ul>
+
+    <h3 style="margin-top:16px">Dam capacity references</h3>
+    <ul class="note">
+      <li><a href="https://en.wikipedia.org/wiki/Santa_Rosa_Dam" target="_blank" rel="noopener">Santa Rosa Dam (Wikipedia, sourced to USACE)</a> — 200,000 af conservation pool, 717,000 af max flood pool</li>
+      <li><a href="https://en.wikipedia.org/wiki/Sumner_Dam" target="_blank" rel="noopener">Sumner Dam (Wikipedia, sourced to Bureau of Reclamation)</a> — 43,800 af total storage capacity</li>
+      <li><a href="https://en.wikipedia.org/wiki/Brantley_Dam" target="_blank" rel="noopener">Brantley Dam (Wikipedia, sourced to Bureau of Reclamation)</a> — 335,054 af flood-control capacity</li>
+      <li><a href="https://en.wikipedia.org/wiki/Avalon_Dam" target="_blank" rel="noopener">Avalon Dam (Wikipedia, sourced to Bureau of Reclamation)</a> — 4,466 af (1996 resurvey, top of conservation pool)</li>
+      <li><a href="https://en.wikipedia.org/wiki/Red_Bluff_Reservoir" target="_blank" rel="noopener">Red Bluff Reservoir (Wikipedia, sourced to TWDB)</a> — 307,000 af storage capacity</li>
+    </ul>
+
+    <h3 style="margin-top:16px">How the data was aggregated for this lab</h3>
+    <ul class="note">
+      <li>The daily CSVs (~7,671 days × 5 dams) were aggregated to <b>monthly</b> totals/averages (252 months) to keep the file light and easy to explore — the full daily detail is still available in <code>gwflow/input_files/obs_reservoir/</code> for finer analysis.</li>
+      <li>Monthly release is the <b>sum</b> of that month's daily m³, converted to Mm³. Monthly storage is the <b>mean</b> of that month's observed acre-feet (af).</li>
+      <li>"% of storage" in the Management tab uses each dam's own <b>2000–2020 observed maximum</b> as the reference — not its certified design capacity, which is now shown separately above.</li>
+      <li>"Reach flow" in the Reuse tab uses the release of the dam <b>immediately upstream</b> of that reach as a proxy — it does not include unmeasured tributary inflow or irrigation return flow between dams, so it underestimates real available flow over long reaches.</li>
+    </ul>
+
+    <h3 style="margin-top:16px">How the "what-if" release rules and scenarios work</h3>
+    <ul class="note">
+      <li>The rule editor (Flow &amp; Management tab) is <b>not</b> a hydrologic model — it's a simple policy calculator layered on the real observed record: <code>your_release = max(floor, historical_release × scale)</code>, applied month by month, per dam.</li>
+      <li>It does not simulate reservoir storage, inflow, evaporation, or downstream re-regulation — a rule you set on one dam changes the flow shown in the reach immediately below it, but the tool does not attempt to model what the next dam downstream would then do with that extra or reduced water.</li>
+      <li>The 5 preset scenarios (buttons above the table) are illustrative starting points, not forecasts or recommendations — each just sets specific scale/floor values, described in plain language when you click it.</li>
+      <li>The river diagram's flow-mode colors use a fixed 0–30 Mm³/month scale for visual contrast; the risk-mode colors use the same low/moderate/high thresholds documented in the "Where to Place Reuse Water" tab's "Exactly how is this computed?" panel.</li>
+    </ul>
+    <p class="note" style="margin-top:10px">This repo is a direct companion to the <a href="https://josephauresy.github.io/pecos-salinity-lab/" target="_blank" rel="noopener">Salinity Lab</a> (separate repo), built for the same Pecos_USA model (SWAT+ rev.61.0.2, gwflow grid 346&times;227 @ 2 km). Both are linked from the <a href="https://txpwc-dashboard.streamlit.app/" target="_blank" rel="noopener">TxPWC Dashboard</a>.</p>
+  </div>
+</div>
+
+<div class="footer">Pecos Reservoirs — Management &amp; Reuse Lab · observed data 2000–2020 (USGS/GDROM/TWDB proxy via the Pecos_USA SWAT+ gwflow model) · research prototype, not an operational product</div>
+
+<!-- ===================== ZOOM MODAL ===================== -->
+<div id="zoomModal" style="display:none;position:fixed;inset:0;background:rgba(6,10,20,0.78);z-index:80;align-items:center;justify-content:center;padding:16px">
+  <div style="background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;max-width:880px;width:100%;max-height:92vh;overflow:auto">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+      <h2 id="zoomTitle" style="margin:0">Dam</h2>
+      <div style="display:flex;gap:8px">
+        <button id="zoomReset" class="alt sm">↺ Reset zoom</button>
+        <button id="zoomClose" class="alt sm">✕ Close</button>
+      </div>
+    </div>
+    <div class="note">Drag across the chart to zoom into a date range. Move the mouse over it (without dragging) to read exact values.</div>
+    <canvas id="zoomCanvas" width="820" height="320" style="width:100%;height:auto;cursor:crosshair;margin-top:6px;background:#0a111e;border-radius:8px"></canvas>
+    <div id="zoomTooltip" style="font-size:.82rem;color:var(--ink);margin-top:8px;min-height:18px;font-variant-numeric:tabular-nums"></div>
+    <div class="legend" style="margin-top:4px">
+      <span><span class="chip" style="background:#4a5a78;border-radius:2px"></span>historical (observed)</span>
+      <span><span class="chip" style="background:#4cc9f0;border-radius:2px"></span>your rule (if enabled)</span>
+      <span><span class="chip" style="background:#f4a261;border-radius:2px"></span>active month (from the timeline)</span>
+    </div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+/* ============================= DATA ============================= */
+const DATA = {"dams":[{"id":"res2","key":"SantaRosa","name":"Santa Rosa Dam","state":"NM","lat":35.03375,"lon":-104.67552,"elev":1442.0,"flow_gage":"08382830","storage_gage":"08382810","release_Mm3":[0.005,0.0055,0.0088,18.1576,42.6287,0.0044,27.9153,35.9629,0.001,1.3962,0.0099,0.0036,0.0038,0.0009,0.0049,0.0014,19.775,0.0009,37.5459,0.0075,0.0014,0.0021,0.0055,0.001,0.001,0.0007,15.5098,0.0008,1.4076,0.6964,0.002,2.1286,1.0714,0.0015,0.0015,0.0011,0.0009,0.0046,0.0008,0.0008,0.0006,22.2443,0.0005,0.0,1.1493,0.0037,0.0018,0.0012,0.001,4.4218,0.0008,0.0012,0.0079,0.0008,0.0021,0.0014,45.1419,0.0112,0.0,0.0,0.0,0.0,0.0,0.0,34.9395,15.8374,0.0,4.4041,4.2057,3.6608,3.2295,10.2511,0.0,20.402,1.008,0.0,0.7535,48.2121,0.0,0.0001,0.1291,0.0,0.0,0.0,0.0,15.9663,0.7046,0.0,0.0,6.6425,26.3858,13.2826,13.4951,0.0,0.0,0.0,0.0,0.0045,32.5125,0.0,0.0,43.8548,0.0,11.7313,0.0,0.0,0.0074,0.0076,0.0076,0.0069,0.0076,0.0074,0.0076,0.0074,0.0076,0.0076,0.0074,0.0076,0.0074,0.0076,0.0671,0.0353,8.4053,0.1219,0.1615,29.617,0.1715,0.1127,35.2701,0.035,0.0308,0.0211,0.0078,0.0049,25.6577,0.019,0.0196,0.0189,13.4753,0.0155,0.0113,0.0099,0.0111,0.0062,0.0038,0.0036,4.767,0.0037,11.4936,4.5737,0.0038,2.8627,0.0037,0.0038,0.0037,0.0038,0.0038,0.0035,2.7505,0.007,0.0062,0.0059,0.0234,0.0002,3.1846,0.0072,0.0037,0.0052,0.0038,0.0014,0.0005,27.5608,8.5782,26.1325,5.0949,0.0004,0.0,0.0,0.0,0.0001,0.0025,0.0004,0.0065,0.0041,0.0205,24.2547,0.0076,9.056,0.0109,0.0575,12.3806,0.0664,0.0113,0.0076,0.0057,0.0291,11.6887,18.1281,13.7399,38.7181,0.0,0.0004,0.013,0.0213,0.0234,0.0106,0.0042,0.008,0.0039,46.2281,7.2765,0.025,0.0317,0.072,0.0347,0.0396,0.0305,0.0115,0.0049,0.0027,0.0,0.0001,46.3289,0.0,9.2457,0.0091,0.0046,0.0039,0.0041,0.0035,0.0116,0.0037,45.8584,0.0051,30.0588,0.0051,26.785,0.0047,0.0095,0.0086,0.0126,0.0152,0.0106,0.0147,0.0092,46.8494,0.0025,0.0041,3.6324,1.4016,0.0099,0.0193],"storage_af":[97151.3,97834.1,98249.7,90573.7,67436.5,49601.3,45980.0,18828.7,3377.3,4349.0,10857.0,12146.8,13203.5,14675.4,18964.2,27455.0,32870.3,33503.3,16200.6,8128.4,13277.3,14137.4,14897.3,15621.6,16348.7,16936.4,6480.0,4281.7,4554.5,3531.3,4079.8,6133.9,10268.8,12089.4,12301.3,12554.5,12796.8,12976.8,13082.6,13074.0,15824.5,15643.4,3034.2,3024.6,3846.8,4591.9,4896.3,5011.2,5139.1,2848.2,2120.3,23648.5,41128.7,45257.0,47903.9,54089.7,43854.0,27678.1,29755.7,30093.9,31211.6,34544.6,43143.9,62854.3,90435.5,95416.7,94808.7,95506.5,95276.0,94761.9,93823.0,83741.3,83500.0,80882.1,65997.7,65379.0,64527.4,35726.0,28418.7,44606.5,76094.3,79878.7,79418.3,79010.3,79383.5,77808.6,66070.6,72515.7,82927.7,93254.3,71029.4,70529.7,51007.3,50188.7,49827.3,50261.6,50587.7,50699.7,31962.3,32097.7,43447.1,47287.3,25990.3,29124.8,28413.0,29776.8,30495.7,30858.1,31242.6,31628.9,28306.1,24435.3,37601.6,43715.7,30968.7,34118.1,25968.0,22848.1,23618.7,24119.0,24553.5,25124.6,24391.6,31451.7,53011.3,62852.3,53683.9,65426.5,61357.3,43038.1,42858.7,42785.8,42791.3,42918.2,31619.7,22281.0,21671.9,20854.3,10949.9,8572.1,9202.5,9904.1,9867.5,10026.0,10162.3,10159.7,7705.4,10778.7,15563.5,10376.3,6498.9,5765.9,4630.2,4863.2,4814.1,4797.5,4825.6,4832.5,3573.0,2773.6,2672.3,3182.5,5787.2,10214.6,59268.0,101177.4,99787.3,98913.9,98185.2,97420.4,96499.4,91823.3,64973.2,66012.0,49302.3,70947.4,71842.0,71184.5,70154.3,69528.1,69351.3,69364.3,69594.5,73489.3,81679.0,101513.3,96325.2,100264.8,100843.3,102822.6,97733.0,96820.6,96826.8,96819.7,98838.1,101378.0,100352.6,103801.0,83700.3,73671.9,56846.7,56461.3,56461.0,56266.5,51362.9,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null]},{"id":"res3","key":"Sumner","name":"Sumner Dam (Lake Sumner)","state":"NM","lat":34.61795,"lon":-104.38751,"elev":1296.05,"flow_gage":"08384500","storage_gage":"08384000","release_Mm3":[2.0453,28.2065,7.0011,7.8657,48.7455,6.9947,47.1638,44.6157,6.4296,4.6118,0.5936,0.5391,0.0716,0.5103,4.0456,7.5012,57.4675,8.0296,37.7628,7.347,8.426,7.0925,0.8667,2.6325,2.4197,4.9592,36.9456,6.4883,5.7274,4.2709,5.7403,6.1604,3.6172,5.6721,1.911,1.9186,1.8939,3.4604,6.4139,5.872,6.8621,34.5595,5.9422,5.6227,5.632,5.8187,0.8697,2.1393,2.2532,2.7925,29.2544,3.7701,7.8669,6.8125,5.7215,4.519,47.476,5.6587,0.6735,0.6704,6.0836,5.4949,6.0836,5.8874,6.0836,5.8874,6.0836,6.0836,5.8874,6.0836,5.8874,6.0836,6.0836,5.4949,6.0836,5.8874,6.0836,5.8874,6.0836,6.0836,5.8874,6.0836,5.8874,6.0836,6.0836,5.4949,6.0836,5.8874,6.0836,5.8874,6.0836,6.0836,5.8874,6.0836,5.8874,6.0836,6.0836,5.6912,6.0836,5.8874,6.0836,5.8874,6.0836,6.0836,5.8874,6.0836,5.8874,6.0836,6.0836,5.4949,6.0836,5.8874,6.0836,5.8874,6.0836,6.0836,5.8874,6.0836,5.8874,6.0836,1.5116,1.5975,23.2337,7.4079,8.9808,36.2408,7.7577,7.4336,38.4563,7.8685,0.8822,1.9362,2.1133,4.1313,37.6958,6.3913,7.3247,8.6783,20.2597,6.5489,5.907,5.7357,1.8767,1.173,1.2811,1.4842,23.1285,7.8415,10.5037,10.1341,6.7655,5.0711,4.9718,5.4557,1.7914,1.5795,1.4986,1.0256,20.0972,5.5647,4.9318,7.2319,6.9862,7.2568,13.0355,8.3195,1.2543,1.2341,1.0868,0.9123,5.4559,31.0568,30.0199,28.6035,19.3859,18.2291,5.3983,6.0406,0.8728,1.7063,1.5364,1.6798,4.6939,16.0959,6.5423,31.8869,8.6231,30.7812,6.9998,12.6781,0.772,1.8839,2.352,5.0063,8.8535,12.7266,25.2997,21.2056,25.1668,42.6957,5.8455,7.3587,0.5785,1.5104,1.851,1.4121,6.5978,7.6235,7.4654,47.3104,19.4015,6.7767,6.8025,4.0589,0.2828,1.0816,1.7202,3.1244,5.0707,19.535,5.8704,6.8627,48.5473,5.3149,19.9345,3.0759,0.3255,1.1121,1.226,1.839,5.83,8.5628,49.4222,7.9777,33.7957,8.0675,31.02,6.3697,0.0005,1.0582,1.5299,1.1196,6.9942,8.1324,9.3385,53.4104,8.582,8.6212,6.6982,5.9219,0.977,1.2879],"storage_af":[33924.8,29078.6,15756.5,21790.7,23401.3,26081.0,21927.7,11671.0,7678.7,9436.5,21475.3,26155.8,29899.0,32587.1,35729.4,30602.7,25911.3,34000.0,25760.3,24607.4,15646.0,10842.6,8636.3,8333.5,11654.2,13755.4,6209.6,1497.1,443.1,1005.0,1376.7,845.7,2461.7,3478.7,5696.7,8780.4,11717.4,14202.9,14018.1,12983.3,11379.7,7842.7,3170.3,2202.9,2238.3,5047.4,7419.0,10226.8,12786.1,17000.7,6241.7,6486.2,6157.7,3375.1,2537.7,3440.1,4867.9,13702.4,17545.7,21582.9,25711.0,29339.6,32360.0,31935.7,35242.9,42956.0,40194.8,38106.8,40120.0,38871.6,30225.3,17980.6,22975.8,23627.5,19794.5,18265.7,16633.9,12300.7,14398.1,17402.3,23732.3,22522.9,23731.0,27100.0,30344.8,33821.8,28665.5,26939.0,25481.9,23129.0,26099.0,23787.4,21471.7,18780.6,19273.7,22769.0,25953.2,28121.4,25187.4,21590.3,18914.2,16802.3,17513.2,17863.2,14750.7,12258.1,13538.3,17458.1,20511.0,23427.9,21460.0,15153.3,13599.4,10057.8,12582.9,12724.5,13873.3,16146.8,18733.3,22306.1,25532.9,29120.7,29287.7,21524.7,19189.0,16010.7,15073.9,16665.2,16202.3,15550.0,16977.7,20004.2,22762.9,24973.6,20303.2,16085.7,13811.9,9709.7,5769.9,3995.6,2917.6,2379.7,3608.5,7116.3,10999.1,14057.6,11835.5,4376.6,3311.7,4192.4,3527.2,3084.1,4337.6,4186.1,5226.4,8120.4,11165.3,13953.6,10617.4,5681.6,5352.5,4614.2,5377.4,5182.7,23473.6,32154.2,32960.3,36114.8,39240.6,42301.1,43298.1,41098.3,30925.5,29097.7,33743.9,37993.2,36683.3,36443.5,37467.3,40527.1,43984.2,46918.6,47993.5,43927.3,35787.4,34305.0,32261.6,35069.4,32378.7,30875.5,37278.3,42233.9,45329.4,46056.6,44718.7,41124.7,30527.1,31375.3,24882.9,22025.2,23441.7,19378.4,20385.3,25241.6,28657.4,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null]},{"id":"res4","key":"Brantley","name":"Brantley Dam","state":"NM","lat":32.54404,"lon":-104.38149,"elev":991.0,"flow_gage":"08401500","storage_gage":"08401450","release_Mm3":[0.7927,4.1714,11.2493,18.753,20.3995,11.675,28.5784,16.6025,13.3779,16.5144,6.914,2.2826,2.378,2.0184,3.9145,15.9468,18.4839,21.0723,15.7046,9.9526,8.7758,8.1691,8.7221,5.1398,2.231,2.2173,2.7634,9.7976,10.8946,14.136,6.4017,5.4546,7.5218,4.063,1.8645,11.8198,0.4063,0.6811,2.1354,16.1481,7.8944,6.3124,7.8728,7.1856,6.5272,3.6926,8.7791,1.6307,1.7591,1.7446,1.9991,2.4341,18.9925,15.7324,13.9677,8.0424,10.123,7.8077,29.9659,1.6835,1.9654,1.7752,1.9654,1.902,1.9654,1.902,1.9654,1.9654,1.902,1.9654,1.902,1.9654,1.9654,1.7752,1.9654,1.902,1.9654,1.902,1.9654,1.9654,1.902,1.9654,1.902,1.9654,1.9654,1.7752,1.9654,1.902,1.9654,1.902,1.9654,1.9654,1.902,1.9654,1.902,1.9654,1.9654,1.8386,1.9654,1.902,1.9654,1.902,1.9654,1.9654,1.902,1.9654,1.902,1.9654,1.9654,1.7752,1.9654,1.902,1.9654,1.902,1.9654,1.9654,1.902,1.9654,1.902,1.9654,1.9112,1.6556,1.8394,13.5051,15.5296,19.1981,4.105,18.4421,6.8731,18.3701,22.3923,1.753,1.8707,1.795,5.4546,12.6741,10.5335,10.8559,10.7842,4.9697,4.0445,1.4504,1.4005,1.486,1.537,1.5185,1.6643,8.5068,7.5794,11.4537,4.7509,3.6066,5.3143,1.4393,1.3734,1.4628,1.5738,1.4713,1.766,5.4436,5.2832,3.3226,1.4315,4.0162,32.0089,18.0177,1.9038,1.6645,1.4872,1.3329,4.6943,22.8362,31.3637,17.464,14.3958,16.2072,5.9975,2.8799,2.0806,2.0203,1.9731,1.8053,2.5737,16.8978,10.6013,21.5498,13.9366,57.4508,53.561,3.8413,1.5423,1.5491,22.4902,7.3557,6.5372,14.9635,13.6433,13.3553,16.1322,9.5603,2.7037,11.7495,1.7698,1.7462,1.8463,1.3856,6.9119,12.262,13.2368,17.0282,13.2653,9.1487,11.2915,6.4993,0.0192,0.0384,0.0919,0.8018,12.5213,16.3069,12.0127,19.8419,15.5872,13.5836,8.3053,3.5369,0.0328,0.0343,2.1973,1.5095,5.7703,16.9374,13.7346,13.3924,13.6873,17.8624,11.6031,6.7121,0.0315,0.1563,3.1927,4.3537,6.8741,16.6881,16.2881,18.3322,12.1661,8.5882,8.4837,7.5203,1.4051,1.5377],"storage_af":[18091.6,22923.4,31652.6,22546.7,16778.7,18653.7,10879.4,15247.1,20479.0,9368.7,12626.0,15404.5,18035.2,20723.9,22971.6,17638.0,12981.0,21069.3,12508.4,11676.8,11966.3,10842.6,8657.3,8343.2,10171.9,12953.2,21935.5,27963.0,20858.7,13961.3,12442.6,9130.3,10466.3,11692.6,13383.7,11166.7,14375.8,18222.5,20532.9,14652.7,8431.6,6207.0,12080.3,7922.9,4704.9,5964.8,6050.6,5156.2,7269.9,9421.1,18904.8,35443.3,30665.8,19340.0,13331.3,11393.9,9852.3,37003.5,35822.0,33614.5,39379.7,42697.1,39749.4,30563.0,23685.5,33913.3,23212.9,18690.3,18478.0,13153.5,14789.4,14517.6,14283.9,19261.8,34258.1,29087.3,16971.6,19947.3,19242.3,15402.3,23906.0,20404.8,19097.3,16459.7,20013.5,23673.6,37335.5,37654.7,34490.6,26954.0,26193.2,24095.2,24221.7,23750.0,8107.1,9968.2,13003.9,15587.6,26568.1,27559.7,20353.5,12869.7,26817.4,26299.7,33961.7,27603.2,16460.7,17390.6,19601.3,21294.3,23315.5,27041.7,20809.4,13410.0,18425.8,19996.8,15792.3,13505.8,12531.0,14322.9,17350.0,21047.9,24204.5,31115.7,26564.2,18019.7,25240.6,19383.5,14227.0,22563.5,9103.6,10080.9,12316.5,13970.0,20391.9,25157.3,18561.0,11321.6,8240.9,7869.2,6520.6,6442.0,7581.6,9679.6,12280.3,14135.9,16621.6,19254.7,16864.8,11198.3,7612.1,5140.2,3861.0,2988.9,3416.6,4223.2,5584.7,6860.4,9004.8,11200.9,8757.0,5815.4,5662.3,5152.2,20429.8,26264.5,27526.3,30743.9,32741.0,34015.0,34321.9,26031.3,22903.9,29696.0,34120.6,38431.0,50207.7,77764.5,78848.0,80445.5,82146.1,83938.9,84844.8,78421.3,76439.0,74948.0,74261.9,62928.4,34790.3,25187.4,38091.0,41907.1,39392.6,32198.6,34342.9,28751.3,29808.4,24693.3,24151.3,18383.9,34815.3,33328.4,31856.7,34181.3,35915.2,37569.3,37754.5,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null]},{"id":"res5","key":"Avalon","name":"Avalon Dam","state":"NM","lat":32.50134,"lon":-104.2553,"elev":961.48,"flow_gage":"08404000","storage_gage":"08403800","release_Mm3":[0.2503,0.0,0.0,0.0,0.0,0.0,9.1243,0.0,0.0,8.8428,5.8931,0.5193,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,8.4807,3.4016,0.0365,0.2219,0.2236,0.0491,0.0,2.1905,0.0563,0.0012,0.0472,0.0055,0.2365,13.1596,0.0285,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,7.1776,0.0,0.0,0.0,0.0,38.6397,0.0,0.0073,0.0375,0.0159,0.0,0.0,32.4673,0.0104,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,21.8035,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,30.3345,3.9484,0.0,0.0,0.0,0.0,0.0,0.9371,19.4652,0.0,0.0,2.136,20.5411,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,27.5807,36.0263,1.9833,0.0,0.0,16.0623,5.2137,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.1102,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"storage_af":[86.5,818.0,1315.8,1023.1,1068.8,1209.3,1261.9,1231.6,1208.0,1283.1,1661.7,2221.9,2823.5,3190.7,3209.0,1184.7,1225.2,1097.5,1249.7,1266.8,1274.0,1434.5,1450.1,1305.9,1982.9,2590.0,2949.7,1804.2,1099.4,1274.0,2344.8,1215.9,1825.5,1471.4,2391.8,1230.5,15.2,128.7,579.8,1148.6,1278.4,1380.0,1281.9,1572.9,1561.0,1361.3,1623.1,1420.0,2026.7,2514.7,3010.2,3654.4,1400.8,1439.6,2025.7,2353.0,1300.2,2718.3,1883.9,1134.6,1781.3,3511.1,3751.3,1308.8,1231.6,1299.1,1320.5,1573.0,1388.8,1508.9,1694.2,1726.6,2015.1,2520.7,1671.9,1234.8,1419.7,1241.6,1198.1,1379.7,1724.4,1259.3,1497.6,1098.3,1813.8,2439.6,2333.0,1334.8,1358.3,1219.1,1310.5,1340.4,1282.6,1202.6,1290.9,1599.8,2225.8,2627.4,2610.8,1135.1,1182.5,1278.2,1395.3,1284.1,1377.1,1369.4,1447.1,1894.9,2451.8,2843.7,2682.6,1172.2,1240.1,1281.2,1234.5,1439.9,1246.1,1074.7,1205.0,1978.4,2535.2,2985.3,3206.2,1630.4,1291.9,1263.8,2041.6,1273.5,1591.8,1384.0,1432.3,1502.9,2128.0,2573.9,2398.9,1261.7,1424.9,1316.3,1380.6,1543.7,1368.2,1374.7,1430.6,1959.8,2497.1,2702.3,2843.7,1534.6,1436.3,1333.1,1879.4,1503.7,1545.7,1660.7,1994.4,2317.5,2698.4,2985.5,3125.5,2464.5,1863.7,1446.5,1992.8,1608.1,3591.6,2171.7,1124.6,1927.9,2509.6,2915.9,2768.7,2098.5,3046.5,1544.2,1730.3,2442.9,2982.4,2613.0,1533.0,2509.9,3266.5,3697.4,3563.4,1348.4,1427.4,2103.2,2920.5,4661.0,5093.9,3279.9,1454.9,2213.5,4470.5,4659.9,2981.8,1998.4,1947.6,1861.4,1703.9,1916.0,3051.1,1278.0,1214.0,1966.0,2606.9,3043.4,2747.0,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null]},{"id":"res6","key":"RedBluff","name":"Red Bluff Dam","state":"TX/NM","lat":31.90706,"lon":-103.92045,"elev":859.01,"flow_gage":"08407500","storage_gage":"TWDB waterdatafortexas.org","release_Mm3":[4.306,4.0246,4.1469,3.0851,2.9579,4.5629,12.2573,3.5304,3.0607,12.5778,11.4695,5.8301,6.0528,5.8106,5.5782,4.12,2.6105,2.5127,2.3609,2.2998,2.4637,2.7304,10.3637,7.0118,3.5989,2.9114,2.9872,2.8674,1.4655,2.7328,4.9886,2.7573,2.109,2.5899,2.7451,17.1764,4.0029,3.5209,3.1399,1.2718,1.4453,1.751,0.5419,0.5225,0.8814,1.1083,7.215,2.2778,1.7836,1.7202,2.4202,60.3895,2.7473,3.6327,6.4142,4.6223,13.75,11.7142,38.8063,6.4925,5.4852,7.969,16.05,6.0893,6.5947,4.7865,4.7155,8.0,4.8812,6.285,22.4471,38.0686,7.5196,5.919,4.5724,3.3317,8.356,4.2103,3.4413,6.4303,8.3497,6.2869,18.6431,5.4045,4.8657,4.2654,5.3685,4.1264,6.0002,4.5856,6.059,4.9739,6.7004,5.5618,24.9499,5.7644,6.9006,5.3291,3.7026,2.9043,3.1776,3.0991,5.4417,2.2259,2.6296,4.6292,27.1256,4.3718,4.0736,3.6344,3.5906,2.6389,2.5694,7.1679,8.1023,5.5779,4.0787,4.1751,4.2088,4.4777,4.1227,4.0459,3.7702,3.6119,3.4139,2.5231,7.1163,4.4374,6.6248,5.2701,23.8137,6.0322,5.0463,4.1797,4.061,2.8035,2.4767,1.6627,1.4706,1.2013,1.4256,1.4146,1.9147,2.6379,2.3678,2.1048,1.9785,1.6363,1.9186,1.0131,1.5653,1.2342,1.4938,2.1557,2.1466,2.2868,2.5224,1.9052,1.6884,1.0827,0.8633,1.1901,2.8762,1.2622,32.2511,11.4906,2.9058,2.9006,4.3297,3.5054,3.1519,3.1069,21.7713,2.7981,2.5481,4.2504,114.9341,7.4904,6.871,6.0871,6.0699,5.1405,5.497,5.3052,6.5221,4.8797,5.3073,24.2086,34.2912,14.3717,6.8267,6.24,19.3338,12.0325,5.7282,5.4032,4.8298,4.6233,4.5389,9.7376,7.793,6.179,6.4795,6.3621,5.874,4.5154,4.5195,4.3375,4.648,4.156,4.1139,5.4891,5.3098,4.9144,5.1178,4.8855,4.7363,3.6031,3.0345,3.7046,2.8175,2.8796,3.7939,4.2436,5.5439,7.4393,5.8591,4.9479,4.5154,3.4878,3.5297,5.0287,4.0912,6.9468,5.2682,4.1269,4.4779,5.6009,4.8657,4.5939,5.9907,4.6194,5.0211,3.4364,3.6219,3.253,2.838,3.2989,3.3246,3.0029,3.6024,3.4323],"storage_af":[76860.2,78690.7,79623.5,76191.9,63382.6,56358.6,52615.6,45935.5,36619.2,38407.2,47980.7,53742.9,54903.9,58630.2,62616.5,59447.4,43065.1,34190.1,27031.5,20393.2,19610.0,18647.8,15795.5,21538.9,24966.8,26402.4,27132.5,27931.3,27327.0,26290.2,28223.5,28851.3,28874.5,29773.2,31604.2,38486.4,43381.3,45106.6,46574.5,46156.4,44185.8,43578.5,41954.6,39409.9,37309.5,38148.5,38708.1,42879.8,43555.2,43935.3,44629.7,78491.9,80130.9,63718.3,54950.7,56263.3,53059.1,77688.3,92401.5,108944.2,110602.8,113499.7,119558.5,122601.8,120534.8,112509.9,96428.3,85351.9,84712.4,81912.0,86236.5,110467.5,122578.9,123449.0,122974.0,120075.5,109814.2,90463.8,80452.0,75199.8,80594.0,80536.8,82906.2,92560.9,95563.8,97820.2,97910.4,93676.9,93166.6,91004.3,80928.4,76388.3,73567.0,75216.9,86059.5,92428.8,94999.9,96686.1,94978.2,89372.5,80945.1,71502.5,61067.6,53257.0,48162.2,48618.2,60280.5,64391.1,66094.1,67066.9,66543.3,64363.1,56853.7,50066.2,52724.1,56206.5,50577.9,50482.5,50792.3,52986.3,55416.5,58313.2,59493.0,58295.7,54061.5,43055.8,44297.5,41386.7,36659.6,38000.8,48642.8,54868.6,57544.4,58821.6,58976.5,52679.2,42141.3,34381.1,28085.6,20752.5,14933.2,13902.4,13817.6,15683.1,17883.8,19411.0,20441.3,21174.8,22023.7,21988.7,22359.4,22283.0,21671.1,22502.9,22864.3,23831.1,25376.6,26412.1,27119.0,26780.8,25916.5,24374.0,24984.6,27011.3,39713.0,62846.6,63707.0,65047.8,66864.4,68691.6,69195.7,69170.2,79868.4,81468.4,78733.9,78519.7,105135.7,137358.7,127891.6,129828.8,133256.0,136947.8,135263.0,126071.9,119712.7,116202.0,110083.2,106211.7,118991.3,134397.6,134580.8,136021.3,134671.5,135623.2,137503.1,138097.9,134352.5,130083.6,123570.5,118757.7,128429.1,127624.9,129355.6,130123.2,132748.6,134226.3,133440.1,131010.3,126253.3,115563.4,106961.1,106796.7,105222.0,107326.7,108281.8,110041.5,112036.5,112764.1,111996.1,109696.5,103482.0,92346.7,88381.3,84767.3,85592.0,87704.2,92972.5,95788.8,98741.1,100265.6,99451.9,98033.6,97736.3,100293.2,96396.2,92816.7,89606.7,90343.5,91267.5,94055.3,96813.3,99522.2,101920.9,100624.8,97393.6,90524.2,82412.7,77188.7,73385.7,70737.6,70356.4,71007.1]}],"months":["2000-01","2000-02","2000-03","2000-04","2000-05","2000-06","2000-07","2000-08","2000-09","2000-10","2000-11","2000-12","2001-01","2001-02","2001-03","2001-04","2001-05","2001-06","2001-07","2001-08","2001-09","2001-10","2001-11","2001-12","2002-01","2002-02","2002-03","2002-04","2002-05","2002-06","2002-07","2002-08","2002-09","2002-10","2002-11","2002-12","2003-01","2003-02","2003-03","2003-04","2003-05","2003-06","2003-07","2003-08","2003-09","2003-10","2003-11","2003-12","2004-01","2004-02","2004-03","2004-04","2004-05","2004-06","2004-07","2004-08","2004-09","2004-10","2004-11","2004-12","2005-01","2005-02","2005-03","2005-04","2005-05","2005-06","2005-07","2005-08","2005-09","2005-10","2005-11","2005-12","2006-01","2006-02","2006-03","2006-04","2006-05","2006-06","2006-07","2006-08","2006-09","2006-10","2006-11","2006-12","2007-01","2007-02","2007-03","2007-04","2007-05","2007-06","2007-07","2007-08","2007-09","2007-10","2007-11","2007-12","2008-01","2008-02","2008-03","2008-04","2008-05","2008-06","2008-07","2008-08","2008-09","2008-10","2008-11","2008-12","2009-01","2009-02","2009-03","2009-04","2009-05","2009-06","2009-07","2009-08","2009-09","2009-10","2009-11","2009-12","2010-01","2010-02","2010-03","2010-04","2010-05","2010-06","2010-07","2010-08","2010-09","2010-10","2010-11","2010-12","2011-01","2011-02","2011-03","2011-04","2011-05","2011-06","2011-07","2011-08","2011-09","2011-10","2011-11","2011-12","2012-01","2012-02","2012-03","2012-04","2012-05","2012-06","2012-07","2012-08","2012-09","2012-10","2012-11","2012-12","2013-01","2013-02","2013-03","2013-04","2013-05","2013-06","2013-07","2013-08","2013-09","2013-10","2013-11","2013-12","2014-01","2014-02","2014-03","2014-04","2014-05","2014-06","2014-07","2014-08","2014-09","2014-10","2014-11","2014-12","2015-01","2015-02","2015-03","2015-04","2015-05","2015-06","2015-07","2015-08","2015-09","2015-10","2015-11","2015-12","2016-01","2016-02","2016-03","2016-04","2016-05","2016-06","2016-07","2016-08","2016-09","2016-10","2016-11","2016-12","2017-01","2017-02","2017-03","2017-04","2017-05","2017-06","2017-07","2017-08","2017-09","2017-10","2017-11","2017-12","2018-01","2018-02","2018-03","2018-04","2018-05","2018-06","2018-07","2018-08","2018-09","2018-10","2018-11","2018-12","2019-01","2019-02","2019-03","2019-04","2019-05","2019-06","2019-07","2019-08","2019-09","2019-10","2019-11","2019-12","2020-01","2020-02","2020-03","2020-04","2020-05","2020-06","2020-07","2020-08","2020-09","2020-10","2020-11","2020-12"]};
+
+const META = {
+  SantaRosa:{mean_cms:1.798, mean_Mm3yr:56.71, period:"2000–2017", flow_days:7671, gdrom_days:4078, usgs_days:3593},
+  Sumner:{mean_cms:3.521, mean_Mm3yr:111.03, period:"2000–2017", flow_days:7671, gdrom_days:5478, usgs_days:2193},
+  Brantley:{mean_cms:2.727, mean_Mm3yr:86.01, period:"2000–2017", flow_days:7671, gdrom_days:5478, usgs_days:2193},
+  Avalon:{mean_cms:0.479, mean_Mm3yr:15.10, period:"2000–2017", flow_days:7671, gdrom_days:5478, usgs_days:2193},
+  RedBluff:{mean_cms:2.385, mean_Mm3yr:75.21, period:"2000–2020 (TWDB)", flow_days:7671, gdrom_days:0, usgs_days:7671}
+};
+
+// Official public-record storage capacities (acre-feet). See Sources tab for citations.
+const CAPACITY = {
+  SantaRosa:{af:200000, label:"conservation (normal) pool — 717,000 af max flood pool", source:"USACE"},
+  Sumner:{af:43800, label:"total storage capacity", source:"Bureau of Reclamation"},
+  Brantley:{af:335054, label:"flood-control allocation (rarely filled)", source:"Bureau of Reclamation"},
+  Avalon:{af:4466, label:"conservation pool, 1996 resurvey (orig. ~7,000 af in 1907)", source:"Bureau of Reclamation"},
+  RedBluff:{af:307000, label:"reservoir storage capacity", source:"TWDB"}
+};
+
+const REACHES = [
+  {id:0, label:"Santa Rosa → Sumner", upstream:"SantaRosa"},
+  {id:1, label:"Sumner → Brantley", upstream:"Sumner"},
+  {id:2, label:"Brantley → Avalon", upstream:"Brantley"},
+  {id:3, label:"Avalon → Red Bluff", upstream:"Avalon"},
+  {id:4, label:"Below Red Bluff (toward Pecos, TX)", upstream:"RedBluff"}
+];
+
+// Verified context markers (see Sources tab for citations)
+const CONTEXT_MARKERS = [
+  {name:"Malaga Bend — documented natural salinity source", lat:32.2075, lon:-104.0239, color:"#d62828",
+   html:"<b>Malaga Bend</b> (32.2075°N, 104.0239°W — USGS gage 08406500, \"Pecos River near Malaga, NM\")<br>USGS studies document brine leaking upward from a confined aquifer at the base of the Rustler Formation, mixing with shallow groundwater and discharging to the Pecos here at roughly <b>0.5 cfs of saturated brine</b>. USGS field-tested a diversion approach at this location decades ago under the <i>Malaga Bend Experimental Salinity Alleviation Project</i>. See the Sources tab for the original USGS reports."},
+  {name:"Pecos pupfish — current verified range (Bitter Lake NWR)", lat:33.456038, lon:-104.401680, color:"#28e07c",
+   html:"<b>Cyprinodon pecosensis</b> — Pecos pupfish, Bitter Lake National Wildlife Refuge<br>Endemic to the Pecos drainage. Current range runs from Bitter Lake NWR / Bottomless Lakes (here, near Roswell, NM) south to just north of Brantley Reservoir — it has been <b>eliminated from the river below Brantley</b>, including the Malaga Bend / Red Bluff reach, where high natural salinity is one of the documented pressures. Proposed for federal Threatened status with critical habitat in Nov 2024 (not yet finalized). See the Sources tab."}
+];
+
+const dam = k => DATA.dams.find(d=>d.key===k);
+const nMonths = DATA.months.length;
+
+/* ============================= WHAT-IF RELEASE RULES ============================= */
+// Per-dam policy scenario, layered on top of the real observed record. Off by default (pure historical).
+const RULES = {};
+DATA.dams.forEach(d=>{ RULES[d.key] = {active:false, scale:1, floor:0}; });
+
+function effectiveRelease(key){
+  const hist = dam(key).release_Mm3;
+  const r = RULES[key];
+  if(!r.active) return hist;
+  return hist.map(v => v===null? null : Math.max(r.floor, v*r.scale));
+}
+function meanOf(arr){
+  const v = arr.filter(x=>x!==null);
+  return v.length? v.reduce((a,b)=>a+b,0)/v.length*12 : 0; // Mm3/mo mean -> Mm3/yr
+}
+function ruleLabel(key){
+  const r = RULES[key];
+  if(!r.active) return null;
+  return '×'+r.scale.toFixed(2)+' scale, '+r.floor.toFixed(1)+' Mm³/mo floor';
+}
+function fmtRatioPct(ratio){
+  if(ratio===null) return 'n/a';
+  if(ratio===Infinity) return '∞';
+  const pct = ratio*100;
+  return pct>999 ? '>999%' : pct.toFixed(1)+'%';
+}
+
+/* ============================= TABS ============================= */
+document.querySelectorAll('.tabbtn').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.tabbtn').forEach(x=>x.classList.remove('on'));
+  document.querySelectorAll('.pane').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on');
+  document.getElementById('tab-'+b.dataset.tab).classList.add('on');
+  if(b.dataset.tab==='mapa') setTimeout(()=>map.invalidateSize(),50);
+});
+
+/* ============================= MAP ============================= */
+const map = L.map('map', {scrollWheelZoom:false}).setView([33.6,-104.15], 7);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution:'&copy; OpenStreetMap contributors', maxZoom:14
+}).addTo(map);
+
+const riverLine = L.polyline(DATA.dams.map(d=>[d.lat,d.lon]), {color:'#4cc9f0', weight:3, opacity:.65, dashArray:'4 5'}).addTo(map)
+  .bindTooltip('Approximate Pecos course between dams (straight line, not the true channel)');
+
+DATA.dams.forEach(d=>{
+  const isRB = d.key==='RedBluff';
+  const m = L.circleMarker([d.lat,d.lon], {
+    radius: 9 + Math.min(10, (META[d.key].mean_Mm3yr/12)),
+    color:'#06263a', weight:2, fillColor: isRB? '#f4a261':'#4cc9f0', fillOpacity:.9
+  }).addTo(map);
+  const meta = META[d.key];
+  const cap = CAPACITY[d.key];
+  m.bindPopup(
+    '<b>'+d.name+'</b> ('+d.state+')<br>'+
+    d.lat.toFixed(4)+'°N, '+Math.abs(d.lon).toFixed(4)+'°W · elev '+d.elev.toFixed(0)+' m<br>'+
+    'Flow gage: <code>'+d.flow_gage+'</code><br>'+
+    'Storage gage: <code>'+d.storage_gage+'</code><br>'+
+    'Mean flow: '+meta.mean_cms.toFixed(2)+' m³/s ('+meta.mean_Mm3yr.toFixed(1)+' Mm³/yr)<br>'+
+    'Observed period: '+meta.period+'<br>'+
+    'Official capacity: '+cap.af.toLocaleString('en-US')+' af ('+cap.label+', '+cap.source+')'
+  );
+});
+
+CONTEXT_MARKERS.forEach(c=>{
+  L.circleMarker([c.lat,c.lon], {radius:8, color:'#06263a', weight:2, fillColor:c.color, fillOpacity:.85, dashArray:'2 2'})
+    .addTo(map).bindPopup(c.html);
+});
+
+const reuseIcon = L.divIcon({html:'🛢️', className:'', iconSize:[24,24], iconAnchor:[12,12]});
+const reuseMarker = L.marker([32.30,-104.05], {draggable:true, icon:reuseIcon}).addTo(map)
+  .bindTooltip('Candidate reuse site — drag me', {permanent:false});
+reuseMarker.bindPopup('<b>Candidate reuse site</b><br>Drag this marker along the river and compare it against the reaches in the "Where to Place Reuse Water" tab — the site closest to a dam with high, steady flow tends to be the safest.');
+
+/* dam summary table */
+(function(){
+  const tbl = document.getElementById('tbl-dams');
+  let html = '<tr><th>Dam</th><th class="num">m³/s</th><th class="num">Mm³/yr</th><th class="num">Official cap. (af)</th></tr>';
+  DATA.dams.forEach(d=>{
+    const meta = META[d.key];
+    const cap = CAPACITY[d.key];
+    html += '<tr><td>'+d.name.replace(' Dam','').replace(' (Lake Sumner)','')+'</td>'+
+      '<td class="num">'+meta.mean_cms.toFixed(2)+'</td><td class="num">'+meta.mean_Mm3yr.toFixed(1)+'</td>'+
+      '<td class="num">'+cap.af.toLocaleString('en-US')+'</td></tr>';
+  });
+  tbl.innerHTML = html;
+})();
+(function(){
+  const tbl = document.getElementById('tbl-gages');
+  let html = '<tr><th>Dam</th><th>Flow gage</th><th>Storage gage</th><th>Period</th></tr>';
+  DATA.dams.forEach(d=>{
+    const meta = META[d.key];
+    html += '<tr><td>'+d.name+'</td><td><code>'+d.flow_gage+'</code></td><td><code>'+d.storage_gage+'</code></td><td>'+meta.period+'</td></tr>';
+  });
+  tbl.innerHTML = html;
+})();
+(function(){
+  const tbl = document.getElementById('tbl-capacity');
+  let html = '<tr><th>Dam</th><th class="num">Official capacity</th><th>What it means</th><th>Source</th></tr>';
+  DATA.dams.forEach(d=>{
+    const cap = CAPACITY[d.key];
+    html += '<tr><td>'+d.name+'</td><td class="num">'+cap.af.toLocaleString('en-US')+' af</td><td>'+cap.label+'</td><td>'+cap.source+'</td></tr>';
+  });
+  tbl.innerHTML = html;
+})();
+
+/* ============================= TIMELINE (shared) ============================= */
+const monthSlider = document.getElementById('month');
+const monthLbl = document.getElementById('monthLbl');
+const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function fmtMonth(i){
+  const [y,m] = DATA.months[i].split('-');
+  return MONTH_NAMES[+m-1]+' '+y;
+}
+function currentMonthIdx(){ return +monthSlider.value; }
+function refreshMonthLabel(){
+  monthLbl.textContent = fmtMonth(currentMonthIdx());
+  document.getElementById('reusoMonthLbl').textContent = fmtMonth(currentMonthIdx());
+}
+monthSlider.oninput = ()=>{ refreshMonthLabel(); renderDamCards(); renderTS(); renderReuso(); };
+
+let playing=false, playTimer=null;
+document.getElementById('playBtn').onclick = e=>{
+  playing = !playing;
+  e.target.textContent = playing? '⏸ Pause' : '▶ Play';
+  if(playing){
+    playTimer = setInterval(()=>{
+      let v = +monthSlider.value + 1;
+      if(v>251) v=0;
+      monthSlider.value = v;
+      monthSlider.oninput();
+    }, 220);
+  } else clearInterval(playTimer);
+};
+document.getElementById('prevBtn').onclick = ()=>{ monthSlider.value = Math.max(0,+monthSlider.value-1); monthSlider.oninput(); };
+document.getElementById('nextBtn').onclick = ()=>{ monthSlider.value = Math.min(251,+monthSlider.value+1); monthSlider.oninput(); };
+
+/* ============================= RIVER DIAGRAM (flow + risk) ============================= */
+const RIVER_NODE_X = [50, 222, 394, 566, 738, 880];
+const RIVER_NAMES = ['Santa Rosa','Sumner','Brantley','Avalon','Red Bluff','Pecos, TX'];
+const RIVER_Y = 58;
+function flowColor(v){ // v in Mm3/mo, capped domain 0..30 for legible contrast
+  const t = Math.max(0, Math.min(1, (v||0)/30));
+  const c1=[0x22,0x34,0x4f], c2=[0x4c,0xc9,0xf0];
+  const r = Math.round(c1[0]+(c2[0]-c1[0])*t), g = Math.round(c1[1]+(c2[1]-c1[1])*t), b = Math.round(c1[2]+(c2[2]-c1[2])*t);
+  return 'rgb('+r+','+g+','+b+')';
+}
+const RISK_COLOR = {low:'#28e07c', moderate:'#f4a261', high:'#d62828', critical:'#d62828', nodata:'#555'};
+function renderRiverDiagram(svgId, mode){
+  const svg = document.getElementById(svgId);
+  if(!svg) return;
+  const i = currentMonthIdx();
+  let parts = [];
+  for(let r=0; r<5; r++){
+    const x1 = RIVER_NODE_X[r], x2 = RIVER_NODE_X[r+1];
+    const flow = reachFlowSeries(r)[i];
+    const width = 6 + 24*Math.max(0, Math.min(1, (flow||0)/30));
+    let color, tip;
+    if(mode==='flow'){
+      color = flowColor(flow);
+      tip = REACHES[r].label+': '+(flow!==null?flow.toFixed(1):'n/a')+' Mm³/mo this month'+(RULES[REACHES[r].upstream].active?' (your rule)':' (historical)');
+    } else {
+      const volYr = +volSlider.value, reuseMonthly = volYr/12;
+      const ratio = (flow!==null && flow>0.0001)? reuseMonthly/flow : (flow===0?Infinity:null);
+      const risk = riskOf(ratio===null?0:ratio, flow);
+      color = RISK_COLOR[risk.level] || '#555';
+      tip = REACHES[r].label+': '+risk.level.toUpperCase()+' risk — proposed reuse would be '+fmtRatioPct(ratio)+' of this reach\'s flow. Click to select.';
+    }
+    const selected = mode==='risk' && +reachSelect.value===r;
+    parts.push('<line x1="'+x1+'" y1="'+RIVER_Y+'" x2="'+x2+'" y2="'+RIVER_Y+'" stroke="'+color+'" stroke-width="'+width+'" stroke-linecap="round" pointer-events="none"/>');
+    if(selected){
+      parts.push('<line x1="'+x1+'" y1="'+RIVER_Y+'" x2="'+x2+'" y2="'+RIVER_Y+'" stroke="#fff" stroke-width="2" stroke-dasharray="5 5" opacity="0.9" pointer-events="none"/>');
+    }
+    if(mode==='risk'){
+      // wide, invisible hit-area so this is easy to tap on a phone even though the visible line is thin
+      parts.push('<line x1="'+x1+'" y1="'+RIVER_Y+'" x2="'+x2+'" y2="'+RIVER_Y+'" stroke="transparent" stroke-width="36" stroke-linecap="round"'+
+        ' class="riverReach" data-reach="'+r+'" tabindex="0" role="button" aria-label="'+tip.replace(/"/g,'&quot;')+'" style="cursor:pointer;outline:none"><title>'+tip+'</title></line>');
+    }
+  }
+  if(mode==='risk'){
+    const r = +reachSelect.value;
+    const mx = (RIVER_NODE_X[r]+RIVER_NODE_X[r+1])/2;
+    parts.push('<text x="'+mx+'" y="'+(RIVER_Y-16)+'" font-size="20" text-anchor="middle">🛢️</text>');
+  }
+  for(let n=0;n<6;n++){
+    const x = RIVER_NODE_X[n], isEnd = n===5, isRB = n===4;
+    const clickable = mode==='flow' && !isEnd;
+    const zTip = clickable? 'Click to see the full history for '+DATA.dams[n].name+' and zoom in' : null;
+    parts.push('<circle cx="'+x+'" cy="'+RIVER_Y+'" r="'+(isEnd?7:12)+'" fill="'+(isEnd?'#26354f':(isRB?'#f4a261':'#4cc9f0'))+'" stroke="#06263a" stroke-width="2" pointer-events="none"/>');
+    if(clickable){
+      // wide, invisible hit-area centered on the node so it's easy to tap on a phone
+      parts.push('<circle cx="'+x+'" cy="'+RIVER_Y+'" r="24" fill="transparent" class="riverDamNode" data-key="'+DATA.dams[n].key+'" tabindex="0" role="button" aria-label="'+zTip+'" style="cursor:pointer"><title>'+zTip+'</title></circle>');
+    }
+    parts.push('<text x="'+x+'" y="'+(RIVER_Y-24)+'" font-size="12" fill="#e8eef7" text-anchor="middle" font-weight="600" pointer-events="none">'+RIVER_NAMES[n]+(clickable?' 🔍':'')+'</text>');
+    if(!isEnd){
+      const val = effectiveRelease(DATA.dams[n].key)[i];
+      parts.push('<text x="'+x+'" y="'+(RIVER_Y+30)+'" font-size="11" fill="#8fa3bf" text-anchor="middle">'+(val!==null?val.toFixed(1):'n/a')+' Mm³/mo</text>');
+    }
+  }
+  svg.innerHTML = parts.join('');
+  if(mode==='flow'){
+    svg.querySelectorAll('.riverDamNode').forEach(el=>{
+      el.onclick = ()=> openZoom(el.dataset.key);
+      el.onkeydown = e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); openZoom(el.dataset.key); } };
+    });
+  }
+  if(mode==='risk'){
+    svg.querySelectorAll('.riverReach').forEach(el=>{
+      const pick = ()=>{ reachSelect.value = el.dataset.reach; reachSelect.dispatchEvent(new Event('change')); };
+      el.onclick = pick;
+      el.onkeydown = e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); pick(); } };
+    });
+  }
+}
+
+/* ============================= SCENARIOS ============================= */
+const SCENARIOS = [
+  {id:'historical', label:'Reset to history (no changes)',
+   desc:"All 5 dams go back to their real recorded releases — no rule changes. Your current month on the timeline doesn't move, so you can compare this baseline to whatever policy you just tried.",
+   apply:()=>{ DATA.dams.forEach(d=>{ RULES[d.key]={active:false,scale:1,floor:0}; }); }},
+  {id:'drought', label:'2011–13 drought, unchanged',
+   desc:"Jumps to September 2011, near the start of the severe New Mexico/Texas drought, with no rule changes — so you can see how thin the real river got on its own, before testing any policy.",
+   apply:()=>{ DATA.dams.forEach(d=>{ RULES[d.key]={active:false,scale:1,floor:0}; }); monthSlider.value=140; }},
+  {id:'minflow-all', label:'Guarantee minimum flow, everywhere',
+   desc:"Every dam is required to release at least 2 Mm³ a month, even in the driest months. Watch the river diagram — the darkest reaches should get noticeably brighter, especially during the drought.",
+   apply:()=>{ DATA.dams.forEach(d=>{ RULES[d.key]={active:true,scale:1,floor:2}; }); monthSlider.value=140; }},
+  {id:'protect-avalon', label:'Protect the Avalon → Red Bluff reach',
+   desc:"Only Avalon Dam gets a guaranteed minimum release (8 Mm³/month). This is the reach that also carries the most documented natural salinity (Malaga Bend) — and it showed the highest reuse-siting risk in this tool.",
+   apply:()=>{ DATA.dams.forEach(d=>{ RULES[d.key]={active:false,scale:1,floor:0}; }); RULES.Avalon={active:true,scale:1,floor:8}; monthSlider.value=140; }},
+  {id:'release-more', label:'Release 30% more, everywhere',
+   desc:"Every dam releases one-and-a-third times what it actually released historically, every month. Shows what a basin-wide “release more water” policy would look like on the river — not necessarily realistic (the extra water has to come from somewhere), but useful to see the ceiling effect.",
+   apply:()=>{ DATA.dams.forEach(d=>{ RULES[d.key]={active:true,scale:1.3,floor:0}; }); monthSlider.value=140; }}
+];
+function buildScenarioButtons(){
+  const box = document.getElementById('scenarioBtns');
+  box.innerHTML = SCENARIOS.map(s=>'<button class="alt sm" data-id="'+s.id+'">'+s.label+'</button>').join('');
+  box.querySelectorAll('button').forEach(btn=>{
+    btn.onclick = ()=>{
+      const sc = SCENARIOS.find(s=>s.id===btn.dataset.id);
+      sc.apply();
+      refreshMonthLabel();
+      buildRulesTable();
+      renderDamCards(); renderTS(); renderReuso(); renderFreq();
+      const ex = document.getElementById('scenarioExplain');
+      ex.style.display='block';
+      ex.innerHTML = '<b>'+sc.label+':</b> '+sc.desc;
+    };
+  });
+}
+
+/* ============================= DAM CARDS ============================= */
+function damMaxStorage(key){
+  const vals = dam(key).storage_af.filter(v=>v!==null);
+  return Math.max(...vals);
+}
+function renderDamCards(){
+  const i = currentMonthIdx();
+  const box = document.getElementById('damCards');
+  let html='';
+  DATA.dams.forEach(d=>{
+    const rel = effectiveRelease(d.key)[i];
+    const sto = d.storage_af[i];
+    const maxSto = damMaxStorage(d.key);
+    const pct = sto!==null? Math.round(100*sto/maxSto) : null;
+    const mark = RULES[d.key].active? ' ✎':'';
+    html += '<div class="stat"><b>'+(rel!==null? rel.toFixed(2):'–')+'</b><span>'+d.name.replace(' Dam','')+mark+'<br>Mm³ released</span></div>';
+    html += '<div class="stat"><b>'+(pct!==null? pct+'%':'n/a')+'</b><span>storage vs. obs. max</span></div>';
+  });
+  box.innerHTML = html;
+  renderRiverDiagram('riverFlowSvg','flow');
+}
+
+/* ============================= TIME SERIES CHARTS (all 5 dams at once) ============================= */
+function buildTsGrid(){
+  const grid = document.getElementById('tsGrid');
+  grid.innerHTML = DATA.dams.map(d=>
+    '<div>'+
+      '<div style="font-size:.78rem;color:var(--ink);font-weight:600;margin-bottom:3px;text-align:center">'+d.name.replace(' Dam','')+' 🔍</div>'+
+      '<canvas id="tsCanvas-'+d.key+'" width="220" height="120" style="width:100%;height:auto;cursor:pointer" tabindex="0" role="button" aria-label="Open full history and zoom for '+d.name+'"></canvas>'+
+    '</div>'
+  ).join('');
+  DATA.dams.forEach(d=>{
+    const cv = document.getElementById('tsCanvas-'+d.key);
+    cv.onclick = ()=> openZoom(d.key);
+    cv.onkeydown = e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); openZoom(d.key); } };
+  });
+}
+function drawSeries(ctx, series, max, padL, padT, W, H, color, width){
+  ctx.strokeStyle=color; ctx.lineWidth=width; ctx.beginPath();
+  series.forEach((v,idx)=>{
+    const x = padL + W*idx/(nMonths-1);
+    const y = padT + H*(1 - (v===null?0:v)/max);
+    if(idx===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+  });
+  ctx.stroke();
+}
+function renderTS(){
+  DATA.dams.forEach(d=>{
+    const key = d.key;
+    const cv = document.getElementById('tsCanvas-'+key);
+    if(!cv) return;
+    const ctx = cv.getContext('2d');
+    const hist = dam(key).release_Mm3;
+    const eff = effectiveRelease(key);
+    const active = RULES[key].active;
+    const max = Math.max(...hist.filter(v=>v!==null), ...(active? eff.filter(v=>v!==null):[0]), 0.001);
+    ctx.clearRect(0,0,cv.width,cv.height);
+    const padL=4,padR=4,padT=6,padB=14,W=cv.width-padL-padR,H=cv.height-padT-padB;
+    ctx.strokeStyle='#22344f'; ctx.beginPath();
+    for(let g=0; g<=2; g++){ const y=padT+H*g/2; ctx.moveTo(padL,y); ctx.lineTo(cv.width-padR,y); }
+    ctx.stroke();
+    if(active) drawSeries(ctx, hist, max, padL, padT, W, H, '#4a5a78', 1);
+    drawSeries(ctx, eff, max, padL, padT, W, H, '#4cc9f0', 1.2);
+    const i = currentMonthIdx();
+    const xNow = padL + W*i/(nMonths-1);
+    ctx.strokeStyle='#f4a261'; ctx.lineWidth=1.3; ctx.beginPath();
+    ctx.moveTo(xNow,padT); ctx.lineTo(xNow,cv.height-padB); ctx.stroke();
+    ctx.fillStyle='#8fa3bf'; ctx.font='9px Segoe UI';
+    ctx.fillText('2000', padL, cv.height-2);
+    ctx.fillText('2020', cv.width-padR-22, cv.height-2);
+    ctx.fillText(max.toFixed(0)+' max', padL, padT+8);
+  });
+  if(typeof zoomModal!=='undefined' && zoomModal.style.display!=='none' && zoomKey) renderZoomChart();
+}
+
+/* ---- rule editor: all 5 dams visible at once ---- */
+function ruleMeanCell(key){
+  const r = RULES[key];
+  const base = meanOf(dam(key).release_Mm3).toFixed(1);
+  return r.active? base+' → '+meanOf(effectiveRelease(key)).toFixed(1) : base;
+}
+function buildRulesTable(){
+  const tbl = document.getElementById('tbl-rules');
+  let html = '<tr><th>Dam</th><th>Custom rule</th><th>Scale</th><th></th><th>Min. floor</th><th></th><th>Historical → your rule (Mm³/yr)</th><th></th></tr>';
+  DATA.dams.forEach(d=>{
+    const r = RULES[d.key];
+    html += '<tr>'+
+      '<td>'+d.name.replace(' Dam','')+'</td>'+
+      '<td><input type="checkbox" data-key="'+d.key+'" class="ra" '+(r.active?'checked':'')+' style="width:16px;height:16px;accent-color:var(--acc)" aria-label="Enable custom rule for '+d.name+'"></td>'+
+      '<td><input type="range" data-key="'+d.key+'" class="rs" min="0" max="2" step="0.05" value="'+r.scale+'" style="width:100px;accent-color:var(--acc)" aria-label="Release scale for '+d.name+'"></td>'+
+      '<td class="num" id="rsv-'+d.key+'" style="width:44px">'+Math.round(r.scale*100)+'%</td>'+
+      '<td><input type="range" data-key="'+d.key+'" class="rf" min="0" max="20" step="0.5" value="'+r.floor+'" style="width:100px;accent-color:var(--acc)" aria-label="Minimum floor for '+d.name+'"></td>'+
+      '<td class="num" id="rfv-'+d.key+'" style="width:60px">'+r.floor.toFixed(1)+'</td>'+
+      '<td class="num" id="rm-'+d.key+'" style="width:130px">'+ruleMeanCell(d.key)+'</td>'+
+      '<td><button class="alt sm rowreset" data-key="'+d.key+'" title="Reset '+d.name+' to historical">↺</button></td>'+
+    '</tr>';
+  });
+  tbl.innerHTML = html;
+  tbl.querySelectorAll('.ra').forEach(el=> el.onchange = ()=>onRuleRowChange(el.dataset.key));
+  tbl.querySelectorAll('.rs').forEach(el=> el.oninput = ()=>onRuleRowChange(el.dataset.key));
+  tbl.querySelectorAll('.rf').forEach(el=> el.oninput = ()=>onRuleRowChange(el.dataset.key));
+  tbl.querySelectorAll('.rowreset').forEach(el=> el.onclick = ()=>{
+    RULES[el.dataset.key] = {active:false, scale:1, floor:0};
+    buildRulesTable(); renderTS(); renderDamCards(); renderReuso(); renderFreq();
+  });
+}
+function onRuleRowChange(key){
+  const tbl = document.getElementById('tbl-rules');
+  RULES[key].active = tbl.querySelector('.ra[data-key="'+key+'"]').checked;
+  RULES[key].scale = +tbl.querySelector('.rs[data-key="'+key+'"]').value;
+  RULES[key].floor = +tbl.querySelector('.rf[data-key="'+key+'"]').value;
+  document.getElementById('rsv-'+key).textContent = Math.round(RULES[key].scale*100)+'%';
+  document.getElementById('rfv-'+key).textContent = RULES[key].floor.toFixed(1);
+  document.getElementById('rm-'+key).textContent = ruleMeanCell(key);
+  renderTS(); renderDamCards(); renderReuso(); renderFreq();
+}
+document.getElementById('ruleResetAll').onclick = ()=>{
+  DATA.dams.forEach(d=>{ RULES[d.key] = {active:false, scale:1, floor:0}; });
+  buildRulesTable(); renderTS(); renderDamCards(); renderReuso(); renderFreq();
+};
+
+/* ============================= ZOOM MODAL ============================= */
+const ZOOM_PAD = {L:44, R:15, T:16, B:32};
+let zoomKey = null, zoomStart = 0, zoomEnd = nMonths-1, zoomDragX = null;
+const zoomModal = document.getElementById('zoomModal');
+const zoomCanvas = document.getElementById('zoomCanvas');
+
+function openZoom(key){
+  zoomKey = key; zoomStart = 0; zoomEnd = nMonths-1; zoomDragX = null;
+  document.getElementById('zoomTitle').textContent = dam(key).name + ' — release history';
+  zoomModal.style.display = 'flex';
+  renderZoomChart();
+}
+function closeZoom(){ zoomModal.style.display = 'none'; zoomDragX = null; }
+document.getElementById('zoomClose').onclick = closeZoom;
+document.getElementById('zoomReset').onclick = ()=>{ zoomStart=0; zoomEnd=nMonths-1; renderZoomChart(); };
+zoomModal.onclick = e=>{ if(e.target===zoomModal) closeZoom(); };
+document.addEventListener('keydown', e=>{ if(e.key==='Escape' && zoomModal.style.display!=='none') closeZoom(); });
+
+function renderZoomChart(){
+  if(!zoomKey) return;
+  const ctx = zoomCanvas.getContext('2d');
+  const histFull = dam(zoomKey).release_Mm3, effFull = effectiveRelease(zoomKey);
+  const hist = histFull.slice(zoomStart, zoomEnd+1), eff = effFull.slice(zoomStart, zoomEnd+1);
+  const active = RULES[zoomKey].active;
+  const max = Math.max(...hist.filter(v=>v!==null), ...(active? eff.filter(v=>v!==null):[0]), 0.001);
+  const {L,R,T,B} = ZOOM_PAD, W = zoomCanvas.width-L-R, H = zoomCanvas.height-T-B, n = hist.length;
+  ctx.clearRect(0,0,zoomCanvas.width,zoomCanvas.height);
+  ctx.strokeStyle='#22344f'; ctx.fillStyle='#8fa3bf'; ctx.font='11px Segoe UI'; ctx.textAlign='left';
+  for(let g=0; g<=4; g++){
+    const y = T+H*g/4;
+    ctx.beginPath(); ctx.moveTo(L,y); ctx.lineTo(zoomCanvas.width-R,y); ctx.stroke();
+    ctx.fillText((max*(1-g/4)).toFixed(1), 4, y+3);
+  }
+  function drawZ(series, color, width){
+    ctx.strokeStyle=color; ctx.lineWidth=width; ctx.beginPath();
+    series.forEach((v,idx)=>{
+      const x = L + W*idx/(Math.max(1,n-1));
+      const y = T + H*(1-(v===null?0:v)/max);
+      if(idx===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    });
+    ctx.stroke();
+  }
+  if(active) drawZ(hist, '#4a5a78', 1.6);
+  drawZ(eff, '#4cc9f0', 2.1);
+  const i = currentMonthIdx();
+  if(i>=zoomStart && i<=zoomEnd){
+    const xNow = L + W*(i-zoomStart)/(Math.max(1,n-1));
+    ctx.strokeStyle='#f4a261'; ctx.lineWidth=1.6; ctx.beginPath();
+    ctx.moveTo(xNow,T); ctx.lineTo(xNow,zoomCanvas.height-B); ctx.stroke();
+  }
+  ctx.fillStyle='#8fa3bf'; ctx.font='11px Segoe UI'; ctx.textAlign='left';
+  ctx.fillText(fmtMonth(zoomStart), L, zoomCanvas.height-10);
+  ctx.textAlign='right';
+  ctx.fillText(fmtMonth(zoomEnd), zoomCanvas.width-R, zoomCanvas.height-10);
+  ctx.textAlign='left';
+  ctx.fillText((zoomStart===0 && zoomEnd===nMonths-1)? 'full range — drag to zoom' : 'zoomed — click "Reset zoom" for full range', L, T-4);
+}
+function zoomCanvasX(e){
+  const rect = zoomCanvas.getBoundingClientRect();
+  const clientX = e.touches? e.touches[0].clientX : e.clientX;
+  return Math.max(ZOOM_PAD.L, Math.min(zoomCanvas.width-ZOOM_PAD.R, (clientX-rect.left)*(zoomCanvas.width/rect.width)));
+}
+function zoomIdxAtX(x){
+  const {L,R} = ZOOM_PAD, W = zoomCanvas.width-L-R, n = zoomEnd-zoomStart+1;
+  let idx = zoomStart + Math.round((x-L)/W*(n-1));
+  return Math.max(zoomStart, Math.min(zoomEnd, idx));
+}
+function showZoomTooltip(x){
+  const idx = zoomIdxAtX(x);
+  const hist = dam(zoomKey).release_Mm3[idx], eff = effectiveRelease(zoomKey)[idx];
+  const active = RULES[zoomKey].active;
+  let txt = fmtMonth(idx)+': '+(hist!==null?hist.toFixed(2):'n/a')+' Mm³/mo (historical)';
+  if(active) txt += ' · '+(eff!==null?eff.toFixed(2):'n/a')+' Mm³/mo (your rule)';
+  document.getElementById('zoomTooltip').textContent = txt;
+}
+zoomCanvas.addEventListener('mousedown', e=>{ zoomDragX = zoomCanvasX(e); });
+zoomCanvas.addEventListener('mousemove', e=>{
+  const x = zoomCanvasX(e);
+  if(zoomDragX!==null){
+    renderZoomChart();
+    const ctx = zoomCanvas.getContext('2d');
+    ctx.fillStyle = 'rgba(76,201,240,0.18)';
+    ctx.fillRect(Math.min(zoomDragX,x), ZOOM_PAD.T, Math.abs(x-zoomDragX), zoomCanvas.height-ZOOM_PAD.T-ZOOM_PAD.B);
+  } else {
+    showZoomTooltip(x);
+  }
+});
+zoomCanvas.addEventListener('mouseup', e=>{
+  if(zoomDragX!==null){
+    const x2 = zoomCanvasX(e);
+    if(Math.abs(x2-zoomDragX) > 8){
+      const i1 = zoomIdxAtX(Math.min(zoomDragX,x2)), i2 = zoomIdxAtX(Math.max(zoomDragX,x2));
+      if(i2 > i1){ zoomStart = i1; zoomEnd = i2; }
+    }
+    zoomDragX = null;
+    renderZoomChart();
+  }
+});
+zoomCanvas.addEventListener('mouseleave', ()=>{ zoomDragX=null; renderZoomChart(); document.getElementById('zoomTooltip').textContent=''; });
+
+/* ============================= REUSE SITING ============================= */
+const reachSelect = document.getElementById('reachSelect');
+REACHES.forEach(r=>{
+  const o=document.createElement('option'); o.value=r.id; o.textContent=r.label; reachSelect.appendChild(o);
+});
+reachSelect.value=3; // Avalon -> Red Bluff by default (closest to TX)
+reachSelect.onchange = ()=>{ renderReuso(); renderFreq(); };
+
+const volSlider = document.getElementById('volSlider');
+const volLbl = document.getElementById('volLbl');
+volSlider.oninput = ()=>{ volLbl.textContent = (+volSlider.value).toFixed(1)+' Mm³/yr'; renderReuso(); renderFreq(); };
+
+function reachFlowSeries(reachId){
+  const r = REACHES[reachId];
+  return effectiveRelease(r.upstream);
+}
+function reachBaselineSeries(reachId){
+  const r = REACHES[reachId];
+  return dam(r.upstream).release_Mm3;
+}
+function renderRuleBadge(){
+  const reachId = +reachSelect.value;
+  const upstream = REACHES[reachId].upstream;
+  const badge = document.getElementById('ruleBadge');
+  const label = ruleLabel(upstream);
+  if(label){
+    badge.className='callout warn';
+    badge.style.display='block';
+    badge.innerHTML = '✎ Custom rule active on <b>'+dam(upstream).name+'</b> (upstream of this reach): '+label+'. Go to <b>Flow &amp; Management</b> to change it.';
+  } else {
+    badge.className='callout';
+    badge.style.display='block';
+    badge.innerHTML = 'Using <b>historical observed</b> release for '+dam(upstream).name+' (no custom rule set). Set one in the <b>Flow &amp; Management</b> tab.';
+  }
+}
+function riskOf(ratio, flow){
+  if(flow===null) return {level:'nodata', color:'#555'};
+  if(flow<=0.0001) return {level:'critical', color:'#d62828'};
+  if(ratio>0.10) return {level:'high', color:'#d62828'};
+  if(ratio>0.02) return {level:'moderate', color:'#f4a261'};
+  return {level:'low', color:'#28e07c'};
+}
+function renderReuso(){
+  const i = currentMonthIdx();
+  const reachId = +reachSelect.value;
+  const series = reachFlowSeries(reachId);
+  const flow = series[i];
+  const volYr = +volSlider.value;
+  const reuseMonthly = volYr/12;
+  const ratio = (flow!==null && flow>0.0001) ? reuseMonthly/flow : (flow===0?Infinity:null);
+
+  renderRuleBadge();
+  document.getElementById('rFlow').textContent = flow!==null? flow.toFixed(2):'n/a';
+  document.getElementById('rReuse').textContent = reuseMonthly.toFixed(2);
+  document.getElementById('rTotal').textContent = flow!==null? (flow+reuseMonthly).toFixed(2):'n/a';
+  document.getElementById('rPct').textContent = fmtRatioPct(ratio);
+
+  const risk = riskOf(ratio===null?0:ratio, flow);
+  const fill = document.getElementById('riskFill');
+  const pctWidth = ratio===null?0:Math.min(100, (ratio===Infinity?100:ratio*100*4)); // scale so 25% ratio = full bar
+  fill.style.width = pctWidth+'%';
+  fill.style.background = risk.color;
+
+  const txt = document.getElementById('riskText');
+  const callout = document.getElementById('riskCallout');
+  callout.className='callout';
+  if(risk.level==='low'){
+    txt.textContent='Low risk — good dilution capacity this month'; txt.style.color=risk.color;
+    callout.classList.add('good');
+    callout.innerHTML = 'In '+fmtMonth(i)+', the proposed volume is a small fraction of the flow released upstream of this reach. A favorable month for this site.';
+  } else if(risk.level==='moderate'){
+    txt.textContent='Moderate risk — watch seasonality'; txt.style.color=risk.color;
+    callout.classList.add('warn');
+    callout.innerHTML = 'In '+fmtMonth(i)+', the proposed volume is already a notable fraction of this reach\'s flow. Check the histogram on the right to see whether this month is typical or part of a dry spell.';
+  } else {
+    txt.textContent='High risk — little or no dilution available'; txt.style.color='var(--bad)';
+    callout.classList.add('bad');
+    callout.innerHTML = 'In '+fmtMonth(i)+', the flow released upstream of this reach is very low or zero. Discharging the proposed volume here, now, would leave very little river water to dilute it — exactly the kind of month/reach a reuse site should avoid, or that would need extra storage and treatment before discharge.';
+  }
+  renderRiverDiagram('riverRiskSvg','risk');
+}
+
+function riskCounts(series, reuseMonthly){
+  let low=0, mod=0, high=0, valid=0;
+  const buckets = [];
+  series.forEach(flow=>{
+    if(flow===null) return;
+    valid++;
+    let ratio;
+    if(flow<=0.0001){ high++; ratio=1; }
+    else {
+      ratio = reuseMonthly/flow;
+      if(ratio>0.10) high++; else if(ratio>0.02) mod++; else low++;
+    }
+    buckets.push(Math.min(1,ratio));
+  });
+  return {low, mod, high, valid, buckets};
+}
+function renderFreq(){
+  const reachId = +reachSelect.value;
+  const upstream = REACHES[reachId].upstream;
+  const series = reachFlowSeries(reachId);
+  const volYr = +volSlider.value;
+  const reuseMonthly = volYr/12;
+  const cur = riskCounts(series, reuseMonthly);
+  const {low, mod, high, valid, buckets} = cur;
+  const pct = n => valid? (100*n/valid).toFixed(0):'0';
+  document.getElementById('freqStats').innerHTML =
+    '<div class="stat" style="border-color:#28e07c"><b style="color:#28e07c">'+pct(low)+'%</b><span>low-risk months</span></div>'+
+    '<div class="stat" style="border-color:#f4a261"><b style="color:#f4a261">'+pct(mod)+'%</b><span>moderate-risk months</span></div>'+
+    '<div class="stat" style="border-color:#d62828"><b style="color:#d62828">'+pct(high)+'%</b><span>high-risk months</span></div>';
+
+  const ruleCompare = document.getElementById('ruleCompare');
+  if(RULES[upstream].active){
+    const base = riskCounts(reachBaselineSeries(reachId), reuseMonthly);
+    const bpct = n => base.valid? (100*n/base.valid).toFixed(0):'0';
+    ruleCompare.style.display='block';
+    ruleCompare.innerHTML = '<b>Baseline (historical) vs. your rule for '+dam(upstream).name+':</b><br>'+
+      'Historical — low '+bpct(base.low)+'% · moderate '+bpct(base.mod)+'% · high '+bpct(base.high)+'%<br>'+
+      'Your rule — low '+pct(low)+'% · moderate '+pct(mod)+'% · high '+pct(high)+'%';
+  } else {
+    ruleCompare.style.display='none';
+  }
+
+  const cv = document.getElementById('freqCanvas'), ctx=cv.getContext('2d');
+  ctx.clearRect(0,0,cv.width,cv.height);
+  const padL=30,padR=10,padT=10,padB=20,W=cv.width-padL-padR,H=cv.height-padT-padB;
+  const barW = W/buckets.length;
+  buckets.forEach((r,idx)=>{
+    const col = r>0.10?'#d62828':(r>0.02?'#f4a261':'#28e07c');
+    const h = H*Math.min(1, r/0.25); // scale: 25% ratio fills bar
+    ctx.fillStyle=col;
+    ctx.fillRect(padL+idx*barW, padT+H-h, Math.max(1,barW-0.5), h);
+  });
+  ctx.strokeStyle='#22344f';
+  ctx.beginPath(); ctx.moveTo(padL,padT); ctx.lineTo(padL,padT+H); ctx.lineTo(padL+W,padT+H); ctx.stroke();
+  ctx.fillStyle='#8fa3bf'; ctx.font='10px Segoe UI';
+  ctx.fillText('2000', padL, cv.height-4);
+  ctx.fillText('2020', cv.width-padR-26, cv.height-4);
+  ctx.save(); ctx.translate(10,padT+H); ctx.rotate(-Math.PI/2);
+  ctx.fillText('reuse/flow', 0, 0); ctx.restore();
+}
+
+/* ============================= INIT ============================= */
+refreshMonthLabel();
+buildScenarioButtons();
+buildRulesTable();
+buildTsGrid();
+renderDamCards();
+renderTS();
+renderReuso();
+renderFreq();
+</script>
+</body>
+</html>
