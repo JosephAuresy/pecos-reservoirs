@@ -5,7 +5,7 @@ placed** along the Pecos River, and **how changing the way the 5 major dams are 
 using real observed release and storage records (2000–2020) from Santa Rosa, Sumner (Lake Sumner), Brantley,
 Avalon, and Red Bluff, between New Mexico and Texas.
 
-**Live demo:** https://josephauresy.github.io/pecos-reservoir-reuse-lab/
+**Live demo:** https://josephauresy.github.io/pecos-reservoirs/
 *(enable GitHub Pages: Settings → Pages → Deploy from branch `main` / root)*
 
 Companion to the **[Pecos Salinity Transport Lab](https://josephauresy.github.io/pecos-salinity-lab/)** — separate
