@@ -251,6 +251,27 @@
         natural salt source on the Pecos above Texas. This is why Red Bluff is consistently the most saline of the 5
         reservoirs this project models.</p>
     </div>
+    <div class="card"><span class="tag real">REAL — simulated, not just observed</span>
+      <h4>A 26-year SWAT+/gwflow salt-transport run exists (v52_prod, 2000–2025) — Red Bluff is one of only 2 gauges with an assessable comparison</h4>
+      <p class="note">SWAT+'s 8-ion transport (TDS = sum) + gwflow groundwater exchange + two point sources (Malaga Bend
+        brine, produced water), run for 26 years: numerically stable, mass-conserving (0 NaN/Inf in 896,090 rows;
+        chloride mass-balance residual median 0.94%, max 2.99%). Compared against real USGS Water Quality Portal grab
+        samples:</p>
+      <table style="margin:6px 0;font-size:.78rem">
+        <tr><th>Constituent</th><th>Observed median (n)</th><th>Simulated</th><th>Bias</th></tr>
+        <tr><td>TDS</td><td class="num">6,240 mg/L (n=4)</td><td class="num">19,866</td><td class="num">3.2× high</td></tr>
+        <tr><td>Chloride</td><td class="num">1,905 (n=2)</td><td class="num">6,859</td><td class="num">3.6× high</td></tr>
+        <tr><td>Sulfate</td><td class="num">1,685 (n=2)</td><td class="num">4,995</td><td class="num">3.0× high</td></tr>
+      </table>
+      <p class="note">Status: <b>"Ready with caveats," not calibrated yet.</b> The high bias is explained by unverified
+        starting assumptions, not a code defect: initial groundwater concentration uses three flat, latitude-only bands
+        (not measured), and Malaga Bend (1,223 m³/day @ ~300 g/L) / produced-water (63,973 m³/day @ ~1,500 mg/L) flow
+        and concentration are both literature/order-of-magnitude estimates, not calibrated to data. Groundwater supplies
+        ~87% of the combined chloride load reaching the system (~1.30 Mt/yr vs. ~0.17 Mt/yr from both point sources) —
+        so calibrating the groundwater initial-condition field is the highest-leverage next step, well ahead of the
+        point-source assumptions. Sample size is the other honest caveat: only 2–4 real grab samples support each of
+        these numbers.</p>
+    </div>
     <div class="card"><span class="tag gap">DATA GAP</span>
       <h4>No continuous salinity/conductance record at Red Bluff Reservoir itself</h4>
       <p class="note">Checked directly against USGS NWIS (bounding-box query for continuous specific-conductance
@@ -412,7 +433,7 @@
     <h3>3-Level Hierarchy</h3>
     <table>
       <tr><th>Level</th><th>Scope</th><th>Model</th><th>Status</th></tr>
-      <tr><td>1</td><td>Watershed processes</td><td>SWAT+/GWFLOW</td><td>In progress (this project's core thesis model)</td></tr>
+      <tr><td>1</td><td>Watershed processes</td><td>SWAT+/GWFLOW</td><td>Salt transport run exists (v52_prod, 26 yr) — "ready with caveats," not calibrated; see Salinity &amp; WQ tab</td></tr>
       <tr><td>2</td><td>Reservoir network (5 reservoirs)</td><td>SWAT+ reservoir routing + observed data (this Hub's companion Reuse Lab)</td><td>Real data integrated, 1937/2000–2026 depending on reservoir</td></tr>
       <tr><td>3</td><td>Red Bluff high-resolution</td><td>Delft3D-FM</td><td>Not started — this Hub is the data-readiness layer for it</td></tr>
     </table>
@@ -420,7 +441,7 @@
     <h3>Data Exchange Framework (proposed)</h3>
     <table>
       <tr><th>From</th><th>To</th><th>Variable(s)</th><th>Frequency</th><th>Status</th></tr>
-      <tr><td>SWAT+/GWFLOW</td><td>Reservoir network</td><td>Simulated tributary inflow, salt/solute load</td><td>Daily</td><td>Depends on basin model completion</td></tr>
+      <tr><td>SWAT+/GWFLOW</td><td>Reservoir network</td><td>Simulated tributary inflow, salt/solute load</td><td>Daily</td><td>Salt load simulated (v52_prod) but 3.0–3.6× biased high at Red Bluff — not yet calibrated for handoff</td></tr>
       <tr><td>Reservoir network</td><td>Delft3D-FM</td><td>Pecos + Delaware inflow (real, this Hub), release (real, this Hub), water level (real, this Hub)</td><td>Daily</td><td>Ready — real data available now</td></tr>
       <tr><td>Delft3D-FM</td><td>Downstream / reporting</td><td>Outlet salinity concentration, temperature</td><td>Sub-daily to daily</td><td>Requires model build (bathymetry gap)</td></tr>
     </table>

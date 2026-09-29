@@ -506,16 +506,20 @@
       <p class="note">This tab is <b>informational</b>: exact brine flow rates, remediation outcomes, and the final ESA listing/critical-habitat status should be verified against the official sources below before being used in a report or decision — the point here is that whoever plays with this map knows the salinity problem, and the fish response to it, are real and already documented.</p>
     </div>
     <div class="panel" style="width:340px;min-width:0;max-width:100%">
-      <h2>Why this doesn't compute salt (yet)</h2>
-      <p class="note">This lab uses <b>real flow</b> (Mm³/month released by each dam) as a proxy for dilution capacity. It doesn't move TDS, doesn't know whether a reach is gaining or losing groundwater, and doesn't know the background salt load in each reach.</p>
-      <p class="note">That's exactly what the <b>Salinity Lab</b> (gwflow + SWAT+) does: advection–dispersion transport of TDS, river–aquifer exchange via streambed conductance, and comparison against EPA/agricultural/livestock thresholds.</p>
-      <div class="callout">
-        <b>The integration plan:</b> once the SWAT+/gwflow model of the Pecos (346×227 cells, 2 km) is calibrated using these same observed releases as its flow forcing, every reach between dams will have a simulated TDS concentration. That number replaces the "% of flow" indicator in the previous tab with a real result: how much reuse water a reach can actually take <b>without exceeding</b> the TDS threshold that affects the Pecos pupfish or downstream uses.
+      <h2>Where salt simulation actually stands</h2>
+      <p class="note">This lab's own dilution-capacity indicator still uses <b>real flow</b> (Mm³/month) as a proxy, not simulated salt — that part hasn't changed. But a real 26-year salt-transport run (<span class="mono">v52_prod</span>, 2000–2025, SWAT+'s 8-ion transport + gwflow groundwater exchange + Malaga Bend/produced-water point sources) now exists in this project's calibration work, numerically stable and mass-conserving (0 NaN/Inf in 896,090 rows; chloride mass-balance residual: median 0.94%, max 2.99%).</p>
+      <div class="callout warn">
+        <b>Status: "Ready with caveats," not "done."</b> Compared against real USGS Water Quality Portal grab samples (2000–2025):
+        <table style="margin-top:6px;font-size:.74rem">
+          <tr><th>Gauge</th><th>Constituent</th><th>Bias</th></tr>
+          <tr><td>Red Bluff (inflow)</td><td>TDS / Cl / SO4</td><td class="num">3.0–3.6× high</td></tr>
+          <tr><td>Orla (ch 82)*</td><td>TDS / Cl / SO4</td><td class="num">1.06–1.38× high</td></tr>
+          <tr><td>Sumner / Brantley / Avalon</td><td>—</td><td>not assessable (0–2 samples, or flow too unstable)</td></tr>
+        </table>
+        <p class="note" style="margin:6px 0 0">*channel 82's identity as "Orla" is itself unresolved — <span class="mono">chandeg.con</span> shows it flowing into the reach above Red Bluff reservoir, not the USGS 08412500 gauge below the dam.</p>
       </div>
-      <div class="callout warn" style="margin-top:10px">
-        <b>No simulated salt numbers exist yet.</b> Everything above (Malaga Bend rate, TDS site stats, Delaware River samples) is real <i>observed</i> data — none of it has been run through the gwflow/SWAT+ transport model. Nothing on this page should be read as a simulation result until the Salinity Lab's calibration is actually complete.
-      </div>
-      <p class="note" style="margin-top:10px">For Red Bluff specifically — real inflow/outflow/water-level series, and the honest list of what's still missing for a defensible reservoir-scale salinity model — see the <a href="red-bluff-reservoir-hub.html"><b>Red Bluff Reservoir Modeling Hub</b></a>.</p>
+      <p class="note" style="margin-top:8px">Likely explanations for the Red Bluff bias, per the calibration package: three flat, latitude-only initial groundwater concentration bands (not measured), and unverified flow/concentration assumptions for Malaga Bend (1,223 m³/day @ ~300 g/L) and produced water (63,973 m³/day @ ~1,500 mg/L) — plausible starting points, not yet calibrated. Groundwater supplies ~87% of the combined chloride load (~1.30 Mt/yr) vs. ~13% from both point sources combined.</p>
+      <p class="note" style="margin-top:8px">For Red Bluff specifically — real inflow/outflow/water-level series, and the honest list of what's still missing for a defensible reservoir-scale salinity model — see the <a href="red-bluff-reservoir-hub.html"><b>Red Bluff Reservoir Modeling Hub</b></a>.</p>
     </div>
   </div>
 </div>
