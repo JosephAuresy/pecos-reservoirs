@@ -1,0 +1,14 @@
+# Historical Studies & Literature — Red Bluff Reservoir
+
+**Status: a short, honest starting list** — not a systematic literature review. Entries below are split into "confirmed, directly used elsewhere in this project" and "well-established but not re-verified here"; treat the second group as leads to track down primary sources for, not as citations ready to drop into a thesis without checking.
+
+## Confirmed / directly used elsewhere in this project
+- **Houston, N.A., Gary, M.O., and Pearson, D.K. (2019).** *Geochemical and geophysical assessment of salinity conditions in the Pecos River Basin, Texas and New Mexico.* USGS Data Release, DOI: [10.5066/F7DB800T](https://doi.org/10.5066/F7DB800T). Already integrated live (via ScienceBase) into the companion Pecos Reservoir Management & Reuse Lab's Salinity sampling sites layer — 4,283 real TDS/conductance/major-ion/isotope sites basin-wide. Directly relevant to Red Bluff as the downstream-most major reservoir on the mainstem.
+
+## Well-established topics, not yet re-verified with a primary-source check for this Hub
+- **Red Bluff Dam / Reservoir construction history**: commonly documented as completed in the 1930s, built and operated under a New Mexico-Texas compact (the Red Bluff Water Power Control District), serving irrigation districts in Reeves, Loving, and Ward counties, TX, and adjacent areas in NM. Verify exact dates/capacities against a USBR or TWDB primary source before citing precisely in a thesis — this Hub's own real, measured data (`water_levels/`) is a better source for capacity numbers than a secondary paraphrase of construction history.
+- **Malaga Bend brine inflow**: a long-documented natural saline seep on the Pecos River in Eddy County, NM, upstream of Red Bluff, widely cited (TWDB and USGS technical reports going back to at least the 1970s-80s) as the single largest natural salinity source on the Pecos above Texas. Already used as a mapped context marker in the companion Reuse Lab. A specific, citable TWDB report number/year has not been re-confirmed for this Hub — flagged here as a real lead, not a verified citation.
+- **General Pecos River salinity literature**: TWDB and USGS have published on Pecos River salt-load and reservoir water-quality issues across the basin for decades; a systematic search of TWDB's report archive and the USGS Publications Warehouse for "Red Bluff Reservoir" and "Pecos River salinity" would very likely surface additional primary sources beyond what is listed here.
+
+## Recommended next step
+A graduate student building on this Hub should treat this file as a starting point for a real literature search (TWDB report archive, USGS Publications Warehouse, Reclamation historical records for the Red Bluff Water Power Control District compact), not as a finished bibliography. Replace the hedged entries above with verified, page-numbered citations as they are found.

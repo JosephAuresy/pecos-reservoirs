@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Red Bluff Reservoir Modeling Hub</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+  :root{
+    --bg:#0e1726;--panel:#16233a;--panel2:#111d30;--ink:#e8eef7;--mut:#8fa3bf;
+    --acc:#4cc9f0;--warn:#f4a261;--good:#28e07c;--bad:#d62828;--line:#22344f;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;font-family:'Segoe UI',system-ui,sans-serif;}
+  body{background:var(--bg);color:var(--ink);padding:14px 16px 40px;}
+  a{color:var(--acc);}
+  h1{font-size:1.35rem;} h1 span{color:var(--acc);}
+  h2{font-size:1rem;color:var(--acc);margin:2px 0 8px;}
+  h3{font-size:.9rem;color:var(--ink);margin:14px 0 6px;}
+  .sub{color:var(--mut);font-size:.85rem;margin:4px 0 12px;max-width:960px;line-height:1.55;}
+  .badge{display:inline-block;background:var(--panel2);border:1px solid var(--line);color:var(--mut);
+    border-radius:20px;padding:2px 10px;font-size:.72rem;margin-right:6px;}
+  .tabs{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 14px;border-bottom:1px solid var(--line);padding-bottom:10px;}
+  .tabbtn{background:var(--panel2);border:1px solid var(--line);color:var(--mut);font-weight:600;
+    padding:7px 12px;border-radius:8px;cursor:pointer;font-size:.8rem;}
+  .tabbtn.on{background:var(--acc);color:#06263a;border-color:var(--acc);}
+  .pane{display:none;} .pane.on{display:block;}
+  .wrap{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-start;}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;max-width:100%;}
+  .panel.grow{flex:1;min-width:min(340px,100%);}
+  button{background:var(--acc);border:0;color:#06263a;font-weight:700;padding:7px 14px;border-radius:6px;cursor:pointer;font-size:.82rem;text-decoration:none;display:inline-block;}
+  button.alt{background:#26354f;color:var(--ink);font-weight:500;}
+  a.dlbtn{background:var(--acc);border:0;color:#06263a;font-weight:700;padding:7px 14px;border-radius:6px;cursor:pointer;font-size:.8rem;text-decoration:none;display:inline-block;margin:4px 6px 4px 0;}
+  a.dlbtn.gap{background:#26354f;color:var(--mut);border:1px dashed var(--line);}
+  canvas{background:#0a111e;border-radius:8px;max-width:100%;}
+  #rbmap{height:420px;border-radius:10px;background:#0a111e;}
+  table{border-collapse:collapse;width:100%;font-size:.78rem;margin:6px 0;table-layout:auto;}
+  th,td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;overflow-wrap:anywhere;}
+  th{color:var(--acc);font-weight:600;}
+  td.num{text-align:right;font-variant-numeric:tabular-nums;}
+  .stat{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:10px;text-align:center;}
+  .stat b{display:block;font-size:1.1rem;color:var(--acc);}
+  .stat span{color:var(--mut);font-size:.68rem;}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin:10px 0;}
+  .note{font-size:.78rem;color:var(--mut);line-height:1.55;margin:6px 0;}
+  .callout{background:var(--panel2);border-left:3px solid var(--acc);border-radius:6px;padding:10px 12px;font-size:.82rem;color:var(--ink);line-height:1.55;margin:8px 0;}
+  .callout.warn{border-color:var(--warn);}
+  .callout.gap{border-color:var(--mut);color:var(--mut);}
+  .callout.good{border-color:var(--good);}
+  .card{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:12px;margin:8px 0;}
+  .card h4{color:var(--ink);font-size:.85rem;margin-bottom:4px;}
+  .card .tag{display:inline-block;font-size:.65rem;font-weight:700;letter-spacing:.03em;text-transform:uppercase;
+    padding:2px 8px;border-radius:10px;margin-bottom:6px;}
+  .tag.real{background:rgba(40,224,124,.15);color:var(--good);}
+  .tag.gap{background:rgba(143,163,191,.15);color:var(--mut);}
+  .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;}
+  details{margin-top:8px;} summary{cursor:pointer;color:var(--warn);font-size:.85rem;font-weight:600;}
+  details p, details li{color:var(--mut);margin:5px 0;line-height:1.55;font-size:.82rem;}
+  ul{padding-left:18px;}
+  .footer{color:var(--mut);font-size:.72rem;text-align:center;margin-top:26px;border-top:1px solid var(--line);padding-top:12px;}
+  .leaflet-popup-content{font-size:.8rem;line-height:1.5;}
+  .eq2{background:#0a111e;border-radius:6px;padding:8px 10px;font-family:Consolas,monospace;font-size:.78rem;color:#bfe3ff;margin:6px 0;overflow-x:auto;white-space:pre;}
+  .flowdiag{display:flex;align-items:center;flex-wrap:wrap;gap:6px;font-size:.78rem;margin:10px 0;}
+  .flowbox{background:var(--panel2);border:1px solid var(--acc);border-radius:8px;padding:8px 12px;color:var(--ink);font-weight:600;text-align:center;min-width:120px;}
+  .flowarrow{color:var(--acc);font-size:1.1rem;}
+</style>
+</head>
+<body>
+
+<h1>🌊 Red Bluff Reservoir <span>· Modeling Hub</span></h1>
+<div class="sub">
+  <span class="badge">Real data 1937–2026</span>
+  <span class="badge">USGS · TWDB sourced</span>
+  <span class="badge">Delft3D-FM oriented</span>
+  <span class="badge">Companion to the <a href="index.html" style="color:inherit">Reservoir Management &amp; Reuse Lab</a></span><br><br>
+  A dedicated resource for anyone building a hydrodynamic / salinity transport model of <b>Red Bluff Reservoir</b> — the
+  southernmost and most saline of the five major Pecos River reservoirs, on the Texas–New Mexico line. Every number on
+  this page traces to a cited source (USGS NWIS, TWDB) and is downloadable as a CSV. Where a dataset a real model would
+  need does <b>not</b> yet exist in this project, that is stated plainly — as an open, well-defined data gap with a
+  proposed source and automation plan — rather than filled with a placeholder that looks like real data. See
+  <a href="#" onclick="showTab('gaps');return false;">Data Downloads</a> for the full real-vs-gap inventory, and
+  <a href="#" onclick="showTab('twin');return false;">Digital Twin</a> for how this reservoir-scale hub is meant to plug
+  into the basin-scale SWAT+/gwflow model.
+</div>
+
+<div class="tabs">
+  <button class="tabbtn on" data-tab="overview">🗺️ Overview &amp; Map</button>
+  <button class="tabbtn" data-tab="bathy">📐 Bathymetry &amp; Geometry</button>
+  <button class="tabbtn" data-tab="levels">💧 Water Levels</button>
+  <button class="tabbtn" data-tab="inflows">➡️ Inflows</button>
+  <button class="tabbtn" data-tab="outflows">⬅️ Outflows</button>
+  <button class="tabbtn" data-tab="salinity">🧂 Salinity &amp; WQ</button>
+  <button class="tabbtn" data-tab="met">🌦️ Meteorology</button>
+  <button class="tabbtn" data-tab="satellite">🛰️ Satellite</button>
+  <button class="tabbtn" data-tab="studies">📚 Historical Studies</button>
+  <button class="tabbtn" data-tab="delft3d">🌊 Delft3D-FM Resources</button>
+  <button class="tabbtn" data-tab="gaps">📥 Data Downloads</button>
+  <button class="tabbtn" data-tab="twin">🔗 Digital Twin</button>
+</div>
+
+<!-- ===================== OVERVIEW & MAP ===================== -->
+<div class="pane on" id="tab-overview">
+  <div class="wrap">
+    <div class="panel grow" style="flex:2;min-width:420px;">
+      <h2>Reservoir Overview</h2>
+      <p class="note">
+        Red Bluff Reservoir impounds the Pecos River at the Texas–New Mexico state line, fed by the Pecos River mainstem
+        and the Delaware River (a real, separate tributary joining just upstream — mapped below with its own USGS gage,
+        not previously included in this project's tools). It is the downstream-most of the 5 major dams this project's
+        SWAT+/gwflow model already covers (Santa Rosa → Sumner → Brantley → Avalon → <b>Red Bluff</b>), and — because it
+        sits below Malaga Bend, a documented natural brine seep — is consistently the most saline of the five.
+      </p>
+      <div class="stats" id="overviewStats">
+        <div class="stat"><b>151,110</b><span>orig. conservation capacity, af (1937)</span></div>
+        <div class="stat"><b>145,165</b><span>current conservation capacity, af</span></div>
+        <div class="stat"><b>351,000</b><span>max storage ever recorded, af</span></div>
+        <div class="stat"><b>10,900</b><span>min storage ever recorded, af</span></div>
+      </div>
+      <p class="note">All four numbers above are computed directly from the real daily TWDB record in
+        <a href="data/red_bluff/water_levels/">data/red_bluff/water_levels/</a> — not textbook figures.</p>
+      <div class="callout warn">
+        <b>Known caveat, carried over from the companion Reuse Lab:</b> the Pecos inflow gage this project uses
+        (USGS 08407500, "Pecos River at Red Bluff, NM") sits ~19 km (12 mi) <i>north</i> of the actual dam — it is the
+        nearest continuous mainstem gage, not a headwater gage at the reservoir itself. Ungaged local drainage between
+        the gage and the reservoir is not captured by any series on this page.
+      </div>
+    </div>
+    <div class="panel grow" style="flex:1;min-width:260px;">
+      <h2>Basin Position</h2>
+      <p class="note">Level 3 of the SWAT+GWFLOW → Delft3D-FM digital twin concept (see <a href="#" onclick="showTab('twin');return false;">Digital Twin</a> tab): the highest-resolution model in a 3-level nested hierarchy.</p>
+      <div class="flowdiag" style="flex-direction:column;align-items:stretch;">
+        <div class="flowbox">Level 1 · Watershed (SWAT+GWFLOW)</div>
+        <div class="flowarrow" style="text-align:center;">↓</div>
+        <div class="flowbox">Level 2 · 5-Reservoir Network</div>
+        <div class="flowarrow" style="text-align:center;">↓</div>
+        <div class="flowbox" style="border-color:var(--warn);color:var(--warn);">Level 3 · Red Bluff (Delft3D-FM)</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" style="margin-top:12px;">
+    <h2>Interactive Map</h2>
+    <p class="note">Real USGS gage coordinates for every marker — verified against the NWIS site service, not digitized by eye.</p>
+    <div id="rbmap"></div>
+    <div class="note" style="margin-top:8px;">
+      🟦 Red Bluff Dam/Reservoir (USGS 08410000) · 🟩 Pecos River inflow gage (USGS 08407500) · 🟨 Delaware River inflow gage (USGS 08408500, new to this project) · 🟥 Malaga Bend brine source (USGS 08406500, context)
+    </div>
+  </div>
+</div>
+
+<!-- ===================== BATHYMETRY & GEOMETRY ===================== -->
+<div class="pane" id="tab-bathy">
+  <div class="panel">
+    <h2>Bathymetry &amp; Geometry</h2>
+    <div class="card">
+      <span class="tag gap">DATA GAP</span>
+      <h4>No bathymetric survey grid or mesh-ready geometry in this repository yet</h4>
+      <p class="note">
+        A Delft3D-FM mesh needs a real bed-elevation grid, not just a surface area/storage curve. What we do have:
+        the conservation capacity implied by TWDB's own storage curve has already changed once in the real record —
+        <b>151,110 acre-ft in 1937 → 145,165 acre-ft since 2022</b> — indirect evidence of at least one capacity-curve
+        revision, but the underlying survey grid itself is not published in that file.
+      </p>
+      <p class="note"><b>Likely source:</b> TWDB Hydrographic Survey Program (periodic sonar/GPS resurveys of major TX
+        reservoirs); USBR/USACE as-built drawings for the dam and outlet works; USGS 3DEP lidar for exposed margins only.</p>
+      <p class="note"><b>Update frequency:</b> multi-year to multi-decade resurvey cycle — not annual.</p>
+      <p class="note"><b>Proposed automation:</b> one-time pull once a digital survey is located (no confirmed public
+        API for raw point clouds as of this writing) — full detail in
+        <a href="data/red_bluff/bathymetry/README.md">data/red_bluff/bathymetry/README.md</a>.</p>
+    </div>
+    <div class="card">
+      <span class="tag gap">DATA GAP</span>
+      <h4>Reservoir boundary / mesh geometry — approximate only</h4>
+      <p class="note">The map above draws a visualization-only outline. A real Delft3D-FM boundary needs an NHD or
+        TWDB-survey-derived polygon plus dam/outlet structure geometry (spillway crest, outlet invert elevation).
+        Full detail in <a href="data/red_bluff/geometry/README.md">data/red_bluff/geometry/README.md</a>.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== WATER LEVELS ===================== -->
+<div class="pane" id="tab-levels">
+  <div class="panel">
+    <h2>Water Levels &amp; Storage History</h2>
+    <div class="card"><span class="tag real">REAL DATA</span>
+      <h4>USGS 08410000 · TWDB, 1937-02-01 to 2026-09-10 (30,209 days)</h4>
+      <p class="note">Monthly-mean view below (daily CSV — 30k+ rows — is the download). Source:
+        <a href="https://waterdatafortexas.org/reservoirs/individual/red-bluff" target="_blank">waterdatafortexas.org</a>.</p>
+    </div>
+    <canvas id="levelsChart" width="1100" height="280" style="width:100%;height:auto;"></canvas>
+    <div class="note" id="levelsStats"></div>
+    <a class="dlbtn" href="data/red_bluff/water_levels/redbluff_storage_water_level_08410000_daily.csv" download>⬇ Download daily CSV (30,209 days)</a>
+    <a class="dlbtn alt" href="data/red_bluff/monthly_series.json" download>⬇ Download monthly JSON (all series)</a>
+  </div>
+</div>
+
+<!-- ===================== INFLOWS ===================== -->
+<div class="pane" id="tab-inflows">
+  <div class="panel">
+    <h2>Inflows</h2>
+    <div class="card"><span class="tag real">REAL DATA — 2 independent gages</span>
+      <h4>Pecos River (USGS 08407500) &amp; Delaware River (USGS 08408500)</h4>
+      <p class="note">Both 1937-10-01 to present. Delaware River is a genuinely new dataset added by this Hub — not
+        previously in this project's SWAT+/gwflow calibration package or the companion Reuse Lab's map.</p>
+    </div>
+    <canvas id="inflowsChart" width="1100" height="280" style="width:100%;height:auto;"></canvas>
+    <div class="note">🟩 Pecos River at Red Bluff (08407500) · 🟨 Delaware River nr Red Bluff (08408500) — monthly mean discharge, m³/s, log-friendly scale.</div>
+    <a class="dlbtn" href="data/red_bluff/inflows/pecos_river_at_redbluff_08407500_daily.csv" download>⬇ Pecos River daily CSV</a>
+    <a class="dlbtn" href="data/red_bluff/inflows/delaware_river_nr_redbluff_08408500_daily.csv" download>⬇ Delaware River daily CSV</a>
+    <div class="callout warn" style="margin-top:10px;">
+      <b>Gap:</b> ungaged local/direct drainage between 08407500 and the actual reservoir headwater is not captured by
+      either series — see <a href="data/red_bluff/inflows/README.md">inflows/README.md</a> for a proposed fix.
+    </div>
+  </div>
+</div>
+
+<!-- ===================== OUTFLOWS ===================== -->
+<div class="pane" id="tab-outflows">
+  <div class="panel">
+    <h2>Outflows / Release</h2>
+    <div class="card"><span class="tag real">REAL DATA</span>
+      <h4>2000-01-01 to 2020-12-31 (7,671 days)</h4>
+      <p class="note">Each day flagged real-gage vs. proxy in the <code>source</code> column — check before using for calibration.</p>
+    </div>
+    <canvas id="outflowsChart" width="1100" height="260" style="width:100%;height:auto;"></canvas>
+    <a class="dlbtn" href="data/red_bluff/outflows/redbluff_release_daily.csv" download>⬇ Download daily release CSV</a>
+    <div class="callout gap" style="margin-top:10px;">
+      <b>Gap:</b> release has <i>not</i> been extended past 2020 (unlike storage, now current to 2026) — downstream
+      irrigation-district reporting (Reeves County WID, Barstow Canal, Giffin Canal) is the likely path to a modern
+      series. See <a href="data/red_bluff/outflows/README.md">outflows/README.md</a>.
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SALINITY & WQ ===================== -->
+<div class="pane" id="tab-salinity">
+  <div class="panel">
+    <h2>Salinity &amp; Water Quality</h2>
+    <div class="card"><span class="tag real">REAL, historical</span>
+      <h4>Discrete USGS samples at both inflow gages, 1966–2011</h4>
+      <p class="note">08408500 (Delaware River) and 08407500 (Pecos River) both carry historical discrete water-quality
+        samples in USGS NWIS/Water Quality Portal — dissolved solids (TDS, params 70300/70301), specific conductance
+        (00095), major ions. Spot samples, not continuous; Delaware River's own series catalog shows samples from
+        1966-08-24 to 2011-02-01 (~28–64 samples depending on parameter).</p>
+    </div>
+    <div class="card"><span class="tag real">REAL context</span>
+      <h4>Malaga Bend — the dominant known salinity source</h4>
+      <p class="note">A well-documented natural brine seep on the Pecos upstream of Red Bluff (already mapped in the
+        companion Reuse Lab, USGS gage 08406500 coordinates) — long cited in TWDB/USGS literature as the largest single
+        natural salt source on the Pecos above Texas. This is why Red Bluff is consistently the most saline of the 5
+        reservoirs this project models.</p>
+    </div>
+    <div class="card"><span class="tag gap">DATA GAP</span>
+      <h4>No continuous salinity/conductance record at Red Bluff Reservoir itself</h4>
+      <p class="note">Checked directly against USGS NWIS (bounding-box query for continuous specific-conductance
+        stations near the reservoir): none found. A coupled Delft3D-FM salinity run currently has no in-reservoir
+        calibration target beyond the sparse historical inflow-gage samples above. Full detail and proposed extraction
+        plan (Water Quality Portal API, Houston et al. 2019 filtered to the Red Bluff area) in
+        <a href="data/red_bluff/salinity/README.md">salinity/README.md</a>.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== METEOROLOGY ===================== -->
+<div class="pane" id="tab-met">
+  <div class="panel">
+    <h2>Meteorological Forcing</h2>
+    <div class="card"><span class="tag real">REAL, basin-wide — not yet Red-Bluff-specific</span>
+      <h4>TerraClimate (Abatzoglou et al. 2018), already used in this project</h4>
+      <p class="note">The parent SWAT+/gwflow model already pulls real TerraClimate precipitation/ET/temperature
+        (~4 km, live via OPeNDAP, no login) for the whole basin — visible in the companion Reuse Lab's ET layer
+        (~303 mm/yr basin-mean precipitation, 2000–2020). Not yet clipped to the Red Bluff Reservoir surface
+        specifically, and monthly resolution is too coarse for hydrodynamic (as opposed to water-balance) forcing.</p>
+    </div>
+    <div class="card"><span class="tag gap">DATA GAP</span>
+      <h4>No wind/radiation/humidity forcing extracted for the reservoir surface</h4>
+      <p class="note">Needed for a real surface heat/mixing budget in Delft3D-FM. Candidates: NLDAS-2 (hourly, 12 km,
+        since 1979), gridMET (daily, 4 km, since 1979), NOAA HRRR (hourly, 3 km, since 2014 only). Full comparison and
+        proposed extraction plan in <a href="data/red_bluff/meteorology/README.md">meteorology/README.md</a>.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SATELLITE ===================== -->
+<div class="pane" id="tab-satellite">
+  <div class="panel">
+    <h2>Satellite Observations</h2>
+    <div class="card"><span class="tag gap">DATA GAP — nothing extracted yet</span>
+      <h4>Landsat / Sentinel-2 / MODIS — none processed for Red Bluff in this project</h4>
+      <p class="note">Would supply: surface area through time (cross-check against the real storage curve — a
+        systematic mismatch would flag either a bad water mask or a stale bathymetry/capacity curve), surface
+        temperature, and a turbidity/chlorophyll-a reflectance-ratio proxy. Landsat's record (1980s–present) lines up
+        well with the water-level record already on this page. Proposed Google Earth Engine pipeline and revisit-time
+        comparison table in <a href="data/red_bluff/satellite/README.md">satellite/README.md</a>.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== HISTORICAL STUDIES ===================== -->
+<div class="pane" id="tab-studies">
+  <div class="panel">
+    <h2>Historical Studies</h2>
+    <div class="card"><span class="tag real">CONFIRMED</span>
+      <h4>Houston, Gary &amp; Pearson (2019) — Pecos River Basin Salinity Assessment</h4>
+      <p class="note">USGS Data Release, DOI <a href="https://doi.org/10.5066/F7DB800T" target="_blank">10.5066/F7DB800T</a>.
+        Already integrated live in the companion Reuse Lab (4,283 real TDS/isotope sites basin-wide). Directly
+        relevant to Red Bluff as the basin's downstream-most major reservoir.</p>
+    </div>
+    <div class="card"><span class="tag gap">LEAD — not yet primary-source verified</span>
+      <h4>Red Bluff Dam construction &amp; compact history; Malaga Bend brine literature</h4>
+      <p class="note">Commonly documented (Red Bluff Water Power Control District, NM-TX compact, 1930s construction)
+        but not re-verified against a primary USBR/TWDB source for this Hub — treat as a lead, not a ready citation.
+        Full honest breakdown in <a href="data/red_bluff/literature/README.md">literature/README.md</a>.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== DELFT3D-FM RESOURCES ===================== -->
+<div class="pane" id="tab-delft3d">
+  <div class="panel">
+    <h2>Delft3D-FM Starter Package</h2>
+    <p class="note">Generic, accurate technical orientation for a reservoir hydrodynamic/salinity model — not
+      Red-Bluff-specific tuning, which depends on the still-missing bathymetry (see Bathymetry &amp; Geometry tab).</p>
+
+    <h3>Required files</h3>
+    <ul class="note">
+      <li><b>Grid/mesh</b> — unstructured net file (<code>_net.nc</code>), built from a bathymetric point cloud or raster (missing, see Bathymetry tab)</li>
+      <li><b>Model definition</b> (<code>.mdu</code>) — physics, numerics, time control</li>
+      <li><b>Boundary conditions</b> (<code>.bc</code> / <code>.pli</code>) — water level or discharge at each open boundary (inflow/outflow points)</li>
+      <li><b>Meteorological forcing</b> (<code>.tim</code>/uniform or spatially-varying wind/radiation/humidity grids)</li>
+      <li><b>Initial conditions</b> — initial water level and, for a salinity run, an initial salinity field</li>
+      <li><b>Observation points</b> (<code>.xyn</code>) — for model-vs-data comparison at gage locations</li>
+    </ul>
+
+    <h3>Recommended formats</h3>
+    <ul class="note">
+      <li>Bathymetry: <code>.xyz</code> point file or GeoTIFF for mesh generation (RGFGRID / Delta Shell mesh tools)</li>
+      <li>Boundary time series: <code>.bc</code> (new format) preferred over legacy <code>.tim</code> for multi-quantity boundaries</li>
+      <li>Salinity boundary: paired with discharge/water-level boundary as a second quantity on the same <code>.pli</code></li>
+    </ul>
+
+    <h3>Model workflow (typical)</h3>
+    <div class="flowdiag">
+      <div class="flowbox">Bathymetry + boundary</div><div class="flowarrow">→</div>
+      <div class="flowbox">Mesh generation</div><div class="flowarrow">→</div>
+      <div class="flowbox">Hydrodynamic spin-up</div><div class="flowarrow">→</div>
+      <div class="flowbox">Add salinity transport</div><div class="flowarrow">→</div>
+      <div class="flowbox">Calibrate vs. gages</div>
+    </div>
+
+    <h3>Preprocessing steps</h3>
+    <ol class="note">
+      <li>Clip/merge bathymetry + boundary polygon to the reservoir extent (once available — see Bathymetry tab)</li>
+      <li>Generate an unstructured mesh, refined near the dam/outlet and the Pecos/Delaware confluence</li>
+      <li>Convert this Hub's daily inflow (Pecos + Delaware), outflow (release), and water-level CSVs into Delft3D-FM boundary-condition format</li>
+      <li>Convert meteorological forcing (once extracted, see Meteorology tab) into FM's external forcing format</li>
+      <li>Set a spin-up period long enough for initial-condition effects to damp out before evaluating results against real gage data</li>
+    </ol>
+  </div>
+</div>
+
+<!-- ===================== DATA DOWNLOADS ===================== -->
+<div class="pane" id="tab-gaps">
+  <div class="panel">
+    <h2>Data Downloads — Full Inventory</h2>
+    <p class="note">Every category requested for a defensible Red Bluff model, marked real vs. gap. Real data downloads
+      directly; gaps link to a README documenting why it matters, likely source agency, update frequency, and a
+      proposed automation plan — never a fake "download" for data that doesn't exist.</p>
+    <div class="grid2">
+      <div class="card"><span class="tag real">REAL</span><h4>Water Levels</h4><p class="note">1937–2026, daily, TWDB/USGS 08410000</p><a class="dlbtn" href="data/red_bluff/water_levels/redbluff_storage_water_level_08410000_daily.csv" download>⬇ CSV</a></div>
+      <div class="card"><span class="tag real">REAL</span><h4>Inflows</h4><p class="note">Pecos + Delaware, 1937–2026, daily, USGS</p>
+        <a class="dlbtn" href="data/red_bluff/inflows/pecos_river_at_redbluff_08407500_daily.csv" download>⬇ Pecos CSV</a>
+        <a class="dlbtn" href="data/red_bluff/inflows/delaware_river_nr_redbluff_08408500_daily.csv" download>⬇ Delaware CSV</a></div>
+      <div class="card"><span class="tag real">REAL</span><h4>Outflows</h4><p class="note">2000–2020, daily release</p><a class="dlbtn" href="data/red_bluff/outflows/redbluff_release_daily.csv" download>⬇ CSV</a></div>
+      <div class="card"><span class="tag gap">GAP</span><h4>Bathymetry &amp; Geometry</h4><p class="note">No survey grid/mesh geometry yet</p><a class="dlbtn gap" href="data/red_bluff/bathymetry/README.md">📄 Gap plan</a> <a class="dlbtn gap" href="data/red_bluff/geometry/README.md">📄 Gap plan</a></div>
+      <div class="card"><span class="tag gap">PARTIAL</span><h4>Salinity &amp; Water Quality</h4><p class="note">Historical spot samples documented, not yet extracted to CSV</p><a class="dlbtn gap" href="data/red_bluff/salinity/README.md">📄 Plan</a></div>
+      <div class="card"><span class="tag gap">PARTIAL</span><h4>Meteorology</h4><p class="note">Basin-wide TerraClimate exists; not Red-Bluff-specific or sub-daily</p><a class="dlbtn gap" href="data/red_bluff/meteorology/README.md">📄 Plan</a></div>
+      <div class="card"><span class="tag gap">GAP</span><h4>Satellite Observations</h4><p class="note">Nothing processed yet</p><a class="dlbtn gap" href="data/red_bluff/satellite/README.md">📄 Plan</a></div>
+      <div class="card"><span class="tag gap">LEAD</span><h4>Historical Studies</h4><p class="note">1 confirmed citation, others flagged as leads</p><a class="dlbtn gap" href="data/red_bluff/literature/README.md">📄 List</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== DIGITAL TWIN ===================== -->
+<div class="pane" id="tab-twin">
+  <div class="panel">
+    <h2>Integrated SWAT+GWFLOW → Delft3D-FM Digital Twin</h2>
+    <p class="note"><b>Status: roadmap / architecture vision — not yet implemented.</b> Nothing on this tab is a running
+      coupled model; it documents how the pieces that already exist (SWAT+/gwflow basin model, this project's 5-reservoir
+      network, this new Red Bluff Hub) are meant to connect, and what is still needed to actually couple them.</p>
+
+    <h3>Purpose</h3>
+    <p class="note">Connect watershed-scale salinity generation (SWAT+/gwflow, calibrated basin-wide) with reservoir-scale
+      salinity dynamics (Delft3D-FM at Red Bluff) so that a change upstream — a new produced-water reuse discharge, a
+      change in Malaga Bend brine flux, a wet/dry year — can be traced through to its effect on water actually delivered
+      downstream of Red Bluff.</p>
+
+    <h3>Workflow</h3>
+    <div class="flowdiag" style="flex-direction:column;align-items:stretch;">
+      <div class="flowbox">Watershed (SWAT+/GWFLOW)</div>
+      <div class="flowarrow" style="text-align:center;">↓ simulated salt load + flow</div>
+      <div class="flowbox">Reservoir Inflows (5-reservoir network, incl. this Hub's real Pecos + Delaware series)</div>
+      <div class="flowarrow" style="text-align:center;">↓ boundary conditions</div>
+      <div class="flowbox" style="border-color:var(--warn);color:var(--warn);">Delft3D-FM (Red Bluff, high-resolution)</div>
+      <div class="flowarrow" style="text-align:center;">↓ resolved 3-D/2-D mixing</div>
+      <div class="flowbox">Within-Reservoir Salinity Dynamics</div>
+      <div class="flowarrow" style="text-align:center;">↓ outlet concentration</div>
+      <div class="flowbox">Water Delivery Salinity</div>
+    </div>
+
+    <h3>3-Level Hierarchy</h3>
+    <table>
+      <tr><th>Level</th><th>Scope</th><th>Model</th><th>Status</th></tr>
+      <tr><td>1</td><td>Watershed processes</td><td>SWAT+/GWFLOW</td><td>In progress (this project's core thesis model)</td></tr>
+      <tr><td>2</td><td>Reservoir network (5 reservoirs)</td><td>SWAT+ reservoir routing + observed data (this Hub's companion Reuse Lab)</td><td>Real data integrated, 1937/2000–2026 depending on reservoir</td></tr>
+      <tr><td>3</td><td>Red Bluff high-resolution</td><td>Delft3D-FM</td><td>Not started — this Hub is the data-readiness layer for it</td></tr>
+    </table>
+
+    <h3>Data Exchange Framework (proposed)</h3>
+    <table>
+      <tr><th>From</th><th>To</th><th>Variable(s)</th><th>Frequency</th><th>Status</th></tr>
+      <tr><td>SWAT+/GWFLOW</td><td>Reservoir network</td><td>Simulated tributary inflow, salt/solute load</td><td>Daily</td><td>Depends on basin model completion</td></tr>
+      <tr><td>Reservoir network</td><td>Delft3D-FM</td><td>Pecos + Delaware inflow (real, this Hub), release (real, this Hub), water level (real, this Hub)</td><td>Daily</td><td>Ready — real data available now</td></tr>
+      <tr><td>Delft3D-FM</td><td>Downstream / reporting</td><td>Outlet salinity concentration, temperature</td><td>Sub-daily to daily</td><td>Requires model build (bathymetry gap)</td></tr>
+    </table>
+
+    <h3>Input–Output Summary</h3>
+    <div class="grid2">
+      <div class="card"><h4>Inputs ready now</h4><p class="note">Pecos inflow, Delaware inflow, storage/water level, outflow (2000–2020) — all real, all on this page.</p></div>
+      <div class="card"><h4>Inputs still needed</h4><p class="note">Bathymetry/mesh, reservoir-surface meteorology, inflow salinity boundary, in-reservoir salinity calibration target.</p></div>
+    </div>
+
+    <h3>Visualization Dashboard</h3>
+    <p class="note">The Water Levels / Inflows / Outflows tabs on this page already function as the first real dashboard
+      layer (real monthly time series, 1937–2026 where available). A true digital-twin dashboard would add a live
+      Delft3D-FM output panel once Level 3 exists — not built yet.</p>
+
+    <h3>Future Roadmap</h3>
+    <ol class="note">
+      <li>Close the bathymetry/geometry gap (highest-priority blocker for any real Delft3D-FM run)</li>
+      <li>Extract inflow salinity boundary conditions (Water Quality Portal + Houston et al. 2019, filtered to Red Bluff)</li>
+      <li>Build and spin up a first Delft3D-FM hydrodynamic-only run against the real water-level record on this page</li>
+      <li>Add salinity transport once boundary salinity data exists</li>
+      <li>Wire Level 1 (SWAT+/GWFLOW) output directly into Level 2/3 as the basin model matures</li>
+    </ol>
+  </div>
+</div>
+
+<div class="footer">
+  Red Bluff Reservoir Modeling Hub · part of the Pecos Reservoirs project · data sourced from USGS NWIS and the Texas
+  Water Development Board · companion to the <a href="index.html">Pecos Reservoir Management &amp; Reuse Lab</a>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+function showTab(id){
+  document.querySelectorAll('.tabbtn').forEach(b=>b.classList.toggle('on', b.dataset.tab===id));
+  document.querySelectorAll('.pane').forEach(p=>p.classList.toggle('on', p.id==='tab-'+id));
+}
+document.querySelectorAll('.tabbtn').forEach(b=>b.addEventListener('click', ()=>showTab(b.dataset.tab)));
+
+// ---------------- Map ----------------
+var rbmap = L.map('rbmap').setView([32.0, -104.0], 10);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '&copy; OpenStreetMap contributors', maxZoom: 17
+}).addTo(rbmap);
+
+function mk(lat, lon, color, label, popup){
+  return L.circleMarker([lat, lon], {radius:9, color:'#0a111e', weight:2, fillColor:color, fillOpacity:.95})
+    .addTo(rbmap).bindPopup('<b>'+label+'</b><br>'+popup);
+}
+mk(31.901237, -103.9101974, '#4cc9f0', 'Red Bluff Reservoir', 'USGS 08410000 · storage gage · 31.90124, -103.91020');
+mk(32.075192, -104.039436, '#28e07c', 'Pecos River at Red Bluff, NM', 'USGS 08407500 · inflow proxy (~19 km N of dam) · 32.07519, -104.03944');
+mk(32.023142, -104.054456, '#f4a261', 'Delaware River nr Red Bluff, NM', 'USGS 08408500 · inflow, new to this project · 32.02314, -104.05446');
+mk(32.207542, -104.023875, '#d62828', 'Malaga Bend (brine source)', 'USGS 08406500 · natural salinity source, context marker · 32.20754, -104.02388');
+
+// ---------------- Charts ----------------
+function drawLineChart(canvasId, seriesList, opts){
+  var c = document.getElementById(canvasId);
+  var ctx = c.getContext('2d');
+  var W = c.width, H = c.height, padL = 55, padR = 15, padT = 15, padB = 30;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle = '#0a111e'; ctx.fillRect(0,0,W,H);
+
+  var allVals = [];
+  seriesList.forEach(s=> s.values.forEach(v=>{ if(v!=null) allVals.push(v); }));
+  var vMin = Math.min(0, Math.min.apply(null, allVals));
+  var vMax = Math.max.apply(null, allVals) * 1.08;
+  var n = seriesList[0].values.length;
+
+  function x(i){ return padL + (W-padL-padR) * i/(n-1); }
+  function y(v){ return H-padB - (H-padB-padT) * (v-vMin)/(vMax-vMin || 1); }
+
+  // grid + y labels
+  ctx.strokeStyle = '#22344f'; ctx.fillStyle = '#8fa3bf'; ctx.font = '11px sans-serif'; ctx.lineWidth = 1;
+  for(var g=0; g<=4; g++){
+    var vv = vMin + (vMax-vMin)*g/4;
+    var yy = y(vv);
+    ctx.beginPath(); ctx.moveTo(padL,yy); ctx.lineTo(W-padR,yy); ctx.stroke();
+    ctx.fillText(vv>=1000? (vv/1000).toFixed(0)+'k' : vv.toFixed(1), 4, yy+3);
+  }
+  // x labels (years, sparse)
+  var months = seriesList[0].months;
+  for(var i=0;i<n;i++){
+    if(months[i].endsWith('-01') && (parseInt(months[i])%10===0)){
+      var xx = x(i);
+      ctx.beginPath(); ctx.moveTo(xx,padT); ctx.lineTo(xx,H-padB); ctx.stroke();
+      ctx.fillText(months[i].slice(0,4), xx-14, H-8);
+    }
+  }
+  // series lines
+  seriesList.forEach(function(s){
+    ctx.strokeStyle = s.color; ctx.lineWidth = 1.6; ctx.beginPath();
+    var started = false;
+    s.values.forEach(function(v,i){
+      if(v==null){ started=false; return; }
+      var xx=x(i), yy=y(v);
+      if(!started){ ctx.moveTo(xx,yy); started=true; } else { ctx.lineTo(xx,yy); }
+    });
+    ctx.stroke();
+  });
+}
+
+fetch('data/red_bluff/monthly_series.json').then(r=>r.json()).then(function(d){
+  drawLineChart('levelsChart', [
+    {months:d.storage_monthly.months, values:d.storage_monthly.storage_af, color:'#4cc9f0'}
+  ]);
+  var sv = d.storage_monthly.storage_af;
+  document.getElementById('levelsStats').innerHTML =
+    'Monthly-mean storage (acre-ft), 1937–2026. Range in this record: ' + Math.min.apply(null,sv).toFixed(0) +
+    ' – ' + Math.max.apply(null,sv).toFixed(0) + ' acre-ft.';
+
+  drawLineChart('inflowsChart', [
+    {months:d.pecos_inflow_monthly.months, values:d.pecos_inflow_monthly.cms, color:'#28e07c'},
+    {months:d.delaware_inflow_monthly.months, values:d.delaware_inflow_monthly.cms, color:'#f4a261'}
+  ]);
+
+  drawLineChart('outflowsChart', [
+    {months:d.release_monthly.months, values:d.release_monthly.cms, color:'#4cc9f0'}
+  ]);
+}).catch(function(err){
+  document.querySelectorAll('#levelsChart,#inflowsChart,#outflowsChart').forEach(function(c){
+    var ctx=c.getContext('2d'); ctx.fillStyle='#8fa3bf'; ctx.font='13px sans-serif';
+    ctx.fillText('Chart data loads when served over http(s) — e.g. GitHub Pages. Open via a local server, not file://, to preview.', 20, 30);
+  });
+});
+</script>
+
+</body>
+</html>

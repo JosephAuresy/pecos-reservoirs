@@ -11,6 +11,27 @@ Avalon, and Red Bluff, between New Mexico and Texas.
 Companion to the **[Pecos Salinity Transport Lab](https://josephauresy.github.io/pecos-salinity-lab/)** — separate
 repo, separate page, both linked from the [TxPWC Dashboard](https://txpwc-dashboard.streamlit.app/).
 
+## 🌊 New: Red Bluff Reservoir Modeling Hub
+
+**[red-bluff-reservoir-hub.html](https://josephauresy.github.io/pecos-reservoirs/red-bluff-reservoir-hub.html)** — a
+dedicated data-readiness resource for anyone building a **Delft3D-FM** hydrodynamic/salinity transport model of Red
+Bluff Reservoir specifically (the most saline of the 5 dams, sitting just below the Malaga Bend natural brine
+source). Real data, honestly scoped:
+
+- **Real, downloadable now:** water level & storage (USGS 08410000/TWDB, 1937–2026, 30,209 days), Pecos River inflow
+  (USGS 08407500, 1937–2026), **Delaware River inflow (USGS 08408500, 1937–2026 — new to this project, not previously
+  in the SWAT+/gwflow calibration package)**, and release/outflow (2000–2020). All under `data/red_bluff/`.
+- **Documented gaps, not fake placeholders:** bathymetry & mesh geometry, reservoir-surface meteorological forcing,
+  satellite-derived surface area/temperature, and a continuous in-reservoir salinity record are all genuinely missing —
+  each gap folder under `data/red_bluff/` explains why it matters, the likely source agency, expected update
+  frequency, and a proposed automation plan, rather than a "download" button for data that doesn't exist.
+- **Digital Twin roadmap:** a `Digital Twin` tab lays out — as an explicitly-labeled vision, not a built model — how
+  this reservoir-scale Hub is meant to connect to the basin-scale SWAT+/GWFLOW model in a 3-level hierarchy
+  (Watershed → 5-Reservoir Network → Red Bluff/Delft3D-FM).
+
+Built as a second static HTML page (same vanilla JS/Leaflet/dark-theme style as this repo's main tool — no React/build
+step was introduced) so it deploys on GitHub Pages exactly like `index.html` does, with zero new infrastructure.
+
 ## What it does
 
 - **Reservoir map** — the 5 real dams at their SWAT+ gwflow coordinates, a draggable candidate reuse-site marker,
