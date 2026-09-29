@@ -11,7 +11,7 @@ Both pulled from USGS NWIS daily-values web service, parameter 00060 (discharge)
 
 **Important caveat (documented in the companion Pecos Reservoir Management & Reuse Lab, carried over here):** gage 08407500 sits **~19 km (12 mi) north of the actual dam** — it is the nearest available continuous Pecos mainstem gage, used as an inflow proxy by this project's own SWAT+/gwflow model, not a gage physically at the reservoir headwater. Ungaged local inflow (direct drainage, minor tributaries) between the gage and the reservoir is not captured by either series.
 
-**Delaware River is a real, separate inflow** joining the Pecos just above Red Bluff Reservoir — not currently used by the existing SWAT+/gwflow calibration package for this project, and not shown on the companion Reuse Lab's map. Adding it here is the one genuinely new real dataset this Hub contributes beyond what the project already had.
+**Delaware River is a real, separate inflow** joining the Pecos just above Red Bluff Reservoir. It was already added as a map marker on the companion Reuse Lab (August 2026, identified via the Pecos River Compact River Master's accounting report) — but not yet used by the SWAT+/gwflow calibration package, and not previously available as a standalone downloadable daily discharge series. That CSV is what this Hub adds.
 
 **Missing for a defensible Delft3D-FM inflow boundary:**
 - **Ungaged local/direct drainage** between 08407500 and the reservoir headwater — no dedicated gage exists; likely source for an estimate: SWAT+/gwflow's own simulated tributary contribution once the model run covering this reach is finalized, or a drainage-area ratio scaling from 08407500.

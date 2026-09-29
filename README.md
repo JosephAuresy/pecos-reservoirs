@@ -19,8 +19,9 @@ Bluff Reservoir specifically (the most saline of the 5 dams, sitting just below 
 source). Real data, honestly scoped:
 
 - **Real, downloadable now:** water level & storage (USGS 08410000/TWDB, 1937–2026, 30,209 days), Pecos River inflow
-  (USGS 08407500, 1937–2026), **Delaware River inflow (USGS 08408500, 1937–2026 — new to this project, not previously
-  in the SWAT+/gwflow calibration package)**, and release/outflow (2000–2020). All under `data/red_bluff/`.
+  (USGS 08407500, 1937–2026), **Delaware River inflow (USGS 08408500, 1937–2026 — already a map marker on this repo's
+  main tool since Aug 2026, but new here as a standalone daily CSV; still not in the SWAT+/gwflow calibration
+  package)**, and release/outflow (2000–2020). All under `data/red_bluff/`.
 - **Documented gaps, not fake placeholders:** bathymetry & mesh geometry, reservoir-surface meteorological forcing,
   satellite-derived surface area/temperature, and a continuous in-reservoir salinity record are all genuinely missing —
   each gap folder under `data/red_bluff/` explains why it matters, the likely source agency, expected update

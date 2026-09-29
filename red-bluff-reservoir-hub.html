@@ -142,7 +142,7 @@
     <p class="note">Real USGS gage coordinates for every marker — verified against the NWIS site service, not digitized by eye.</p>
     <div id="rbmap"></div>
     <div class="note" style="margin-top:8px;">
-      🟦 Red Bluff Dam/Reservoir (USGS 08410000) · 🟩 Pecos River inflow gage (USGS 08407500) · 🟨 Delaware River inflow gage (USGS 08408500, new to this project) · 🟥 Malaga Bend brine source (USGS 08406500, context)
+      🟦 Red Bluff Dam/Reservoir (USGS 08410000) · 🟩 Pecos River inflow gage (USGS 08407500) · 🟨 Delaware River inflow gage (USGS 08408500, mapped on the main Reservoir Map since Aug 2026, new here as a standalone daily CSV) · 🟥 Malaga Bend brine source (USGS 08406500, context)
     </div>
   </div>
 </div>
@@ -199,8 +199,10 @@
     <h2>Inflows</h2>
     <div class="card"><span class="tag real">REAL DATA — 2 independent gages</span>
       <h4>Pecos River (USGS 08407500) &amp; Delaware River (USGS 08408500)</h4>
-      <p class="note">Both 1937-10-01 to present. Delaware River is a genuinely new dataset added by this Hub — not
-        previously in this project's SWAT+/gwflow calibration package or the companion Reuse Lab's map.</p>
+      <p class="note">Both 1937-10-01 to present. Delaware River was already added as a map marker on the companion
+        Reuse Lab (Aug 2026, identified via the Pecos River Compact accounting report); this Hub adds its real daily
+        discharge as a standalone, downloadable CSV for the first time — still not in the SWAT+/gwflow calibration
+        package itself.</p>
     </div>
     <canvas id="inflowsChart" width="1100" height="280" style="width:100%;height:auto;"></canvas>
     <div class="note">🟩 Pecos River at Red Bluff (08407500) · 🟨 Delaware River nr Red Bluff (08408500) — monthly mean discharge, m³/s, log-friendly scale.</div>
@@ -470,7 +472,7 @@ function mk(lat, lon, color, label, popup){
 }
 mk(31.901237, -103.9101974, '#4cc9f0', 'Red Bluff Reservoir', 'USGS 08410000 · storage gage · 31.90124, -103.91020');
 mk(32.075192, -104.039436, '#28e07c', 'Pecos River at Red Bluff, NM', 'USGS 08407500 · inflow proxy (~19 km N of dam) · 32.07519, -104.03944');
-mk(32.023142, -104.054456, '#f4a261', 'Delaware River nr Red Bluff, NM', 'USGS 08408500 · inflow, new to this project · 32.02314, -104.05446');
+mk(32.023142, -104.054456, '#f4a261', 'Delaware River nr Red Bluff, NM', 'USGS 08408500 · already on the main Reservoir Map (Aug 2026) · new here as a standalone daily CSV · 32.02314, -104.05446');
 mk(32.207542, -104.023875, '#d62828', 'Malaga Bend (brine source)', 'USGS 08406500 · natural salinity source, context marker · 32.20754, -104.02388');
 
 // ---------------- Charts ----------------
