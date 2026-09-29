@@ -11,6 +11,16 @@ Avalon, and Red Bluff, between New Mexico and Texas.
 Companion to the **[Pecos Salinity Transport Lab](https://josephauresy.github.io/pecos-salinity-lab/)** — separate
 repo, separate page, both linked from the [TxPWC Dashboard](https://txpwc-dashboard.streamlit.app/).
 
+## Related tools (Pecos modeling suite)
+
+- **[Pecos Basin Salinity Transport — Stakeholder Lab](https://josephauresy.github.io/pecos-salinity-lab/)** — an
+  idealized 2-D teaching simulation of salt/PFAS transport, built for stakeholder engagement (produced-water reuse
+  scenarios) — illustrative parameters, not fit to observed data.
+- **[Pecos Model Ledger](https://josephauresy.github.io/pre_calibration_pecos/)** — the actual SWAT+/gwflow model's
+  calibration status: flow bias diagnostics, bug tracker, and a real 26-year salt-transport run (`v52_prod`) with its
+  own observed-vs-simulated comparison. This repo's Salinity & Fish tab and the Red Bluff Hub summarize that run's
+  Red Bluff-specific numbers rather than re-deriving them — see the ledger for full detail.
+
 ## 🌊 New: Red Bluff Reservoir Modeling Hub
 
 **[red-bluff-reservoir-hub.html](https://josephauresy.github.io/pecos-reservoirs/red-bluff-reservoir-hub.html)** — a

@@ -85,11 +85,15 @@
   using the real management history of the 5 major dams — Santa Rosa, Sumner, Brantley, Avalon, and Red Bluff — between New Mexico and Texas.
   In <b>Flow &amp; Management</b> you can test your own release policy for any dam (or try a one-click scenario) and watch the river — drawn as a single connected line through all 5 dams — light up or go dark; in
   <b>Where to Place Reuse Water</b> that same river diagram turns green/yellow/red so you can click a stretch directly. Once the SWAT+/gwflow model of the Pecos is finished, the simplified "dilution capacity" indicator here will be replaced by reach-by-reach simulated salt transport from the
-  <a href="pecos_salinity_stakeholder.html">Salinity Lab</a>, closing the loop between reservoir management and optimal reuse siting.
+  <a href="https://josephauresy.github.io/pecos-salinity-lab/" target="_blank" rel="noopener">Salinity Lab</a>, closing the loop between reservoir management and optimal reuse siting.
   <br><br>
   🌊 New: the <a href="red-bluff-reservoir-hub.html"><b>Red Bluff Reservoir Modeling Hub</b></a> — a dedicated data-readiness
   resource (real USGS/TWDB inflow, outflow, and 1937–2026 water-level records, plus an honest inventory of what's still
   missing) for anyone building a Delft3D-FM hydrodynamic/salinity model of Red Bluff specifically.
+  <br><br>
+  <span class="badge" style="background:transparent;border-style:dashed">Part of the Pecos modeling suite</span>
+  this real-data reservoir/reuse tool · <a href="https://josephauresy.github.io/pecos-salinity-lab/" target="_blank" rel="noopener">Salinity Lab</a> (idealized teaching simulation, produced-water scenarios) ·
+  <a href="https://josephauresy.github.io/pre_calibration_pecos/" target="_blank" rel="noopener">Pecos Model Ledger</a> (the real SWAT+/gwflow calibration status — flow, salt transport, bug tracker)
 </div>
 
 <div class="tabs">
@@ -519,6 +523,7 @@
         <p class="note" style="margin:6px 0 0">*channel 82's identity as "Orla" is itself unresolved — <span class="mono">chandeg.con</span> shows it flowing into the reach above Red Bluff reservoir, not the USGS 08412500 gauge below the dam.</p>
       </div>
       <p class="note" style="margin-top:8px">Likely explanations for the Red Bluff bias, per the calibration package: three flat, latitude-only initial groundwater concentration bands (not measured), and unverified flow/concentration assumptions for Malaga Bend (1,223 m³/day @ ~300 g/L) and produced water (63,973 m³/day @ ~1,500 mg/L) — plausible starting points, not yet calibrated. Groundwater supplies ~87% of the combined chloride load (~1.30 Mt/yr) vs. ~13% from both point sources combined.</p>
+      <p class="note" style="margin-top:8px">Full detail (not repeated here — this is the summary): <a href="https://josephauresy.github.io/pre_calibration_pecos/#salobs" target="_blank" rel="noopener">observation comparison</a>, <a href="https://josephauresy.github.io/pre_calibration_pecos/#saluncert" target="_blank" rel="noopener">remaining uncertainties</a>, and the full <a href="https://josephauresy.github.io/pre_calibration_pecos/#salcalib" target="_blank" rel="noopener">calibration-readiness writeup</a> live in the <b>Pecos Model Ledger</b>.</p>
       <p class="note" style="margin-top:8px">For Red Bluff specifically — real inflow/outflow/water-level series, and the honest list of what's still missing for a defensible reservoir-scale salinity model — see the <a href="red-bluff-reservoir-hub.html"><b>Red Bluff Reservoir Modeling Hub</b></a>.</p>
     </div>
   </div>
@@ -636,7 +641,7 @@
       <li>The 5 preset scenarios (buttons above the table) are illustrative starting points, not forecasts or recommendations — each just sets specific scale/floor values, described in plain language when you click it.</li>
       <li>The river diagram's flow-mode colors use a fixed 0–30 Mm³/month scale for visual contrast; the risk-mode colors use the same low/moderate/high thresholds documented in the "Where to Place Reuse Water" tab's "Exactly how is this computed?" panel.</li>
     </ul>
-    <p class="note" style="margin-top:10px">This file is a direct companion to <a href="pecos_salinity_stakeholder.html">pecos_salinity_stakeholder.html</a> (Salinity Lab) and <a href="gwflow_salinity_lab.html">gwflow_salinity_lab.html</a>, built for the same Pecos_USA model (SWAT+ rev.61.0.2, gwflow grid 346&times;227 @ 2 km).</p>
+    <p class="note" style="margin-top:10px">This file is a direct companion to the <a href="https://josephauresy.github.io/pecos-salinity-lab/" target="_blank" rel="noopener">Salinity Lab</a> and the <a href="https://josephauresy.github.io/pre_calibration_pecos/" target="_blank" rel="noopener">Pecos Model Ledger</a> (the real calibration dashboard), built for the same Pecos_USA model (SWAT+ rev.61.0.2, gwflow grid 346&times;227 @ 2 km).</p>
   </div>
 </div>
 
