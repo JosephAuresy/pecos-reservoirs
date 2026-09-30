@@ -3,12 +3,12 @@
 **Status: NOT YET AVAILABLE as a modeling-ready file.** The map on the Hub page draws an approximate boundary for visualization only (public NHD/OSM-derived outline) — it is NOT a survey-grade polygon and should not be fed directly into mesh generation.
 
 ## Why it matters
-Delft3D-FM's unstructured mesh needs a real reservoir boundary polygon (full-pool and/or multiple-stage outlines), inlet/outlet structure locations, and ideally cross-sections near the dam and at the Pecos/Delaware confluence to resolve the actual flow path rather than a generic bathtub shape.
+a hydrodynamic/water-quality model's unstructured mesh needs a real reservoir boundary polygon (full-pool and/or multiple-stage outlines), inlet/outlet structure locations, and ideally cross-sections near the dam and at the Pecos/Delaware confluence to resolve the actual flow path rather than a generic bathtub shape.
 
 ## Likely source agencies
 - **USGS National Hydrography Dataset (NHD)** — public waterbody polygon for Red Bluff Reservoir, free, but coarse and single-stage (not multi-elevation).
 - **TWDB** — same hydrographic survey program as `bathymetry/`; a proper survey typically comes with a matched boundary/contour set.
-- **County/USBR as-built drawings** — for the dam and outlet structure geometry specifically (spillway crest, outlet works invert elevation) needed for the outflow boundary condition in Delft3D-FM.
+- **County/USBR as-built drawings** — for the dam and outlet structure geometry specifically (spillway crest, outlet works invert elevation) needed for the outflow boundary condition in a hydrodynamic/water-quality model.
 
 ## Estimated update frequency
 Reservoir shoreline geometry changes slowly except after major sedimentation or dredging events; a static polygon refreshed only when a new hydrographic survey is published is adequate — no need for frequent automation.

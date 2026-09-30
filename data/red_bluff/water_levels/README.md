@@ -21,4 +21,4 @@
 
 **Update automation (proposed, not yet implemented):** a small scheduled script (e.g., GitHub Actions cron, daily) pulling `https://waterdatafortexas.org/reservoirs/individual/red-bluff.csv` and committing the refreshed file would keep this current automatically. Not yet wired up — currently a manual pull.
 
-**Recommended use in Delft3D-FM:** water surface elevation time series is the most direct boundary/validation target for a 0-D or fully hydrodynamic reservoir model; convert `water_level` (ft, local lake datum) to your model's vertical datum before use — this file does NOT include a NAVD88-to-local-datum offset, confirm against the site's own datum note if precision matters.
+**Recommended use in a hydrodynamic/water-quality model:** water surface elevation time series is the most direct boundary/validation target for a 0-D or fully hydrodynamic reservoir model; convert `water_level` (ft, local lake datum) to your model's vertical datum before use — this file does NOT include a NAVD88-to-local-datum offset, confirm against the site's own datum note if precision matters.

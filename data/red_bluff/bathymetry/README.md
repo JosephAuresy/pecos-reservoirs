@@ -3,7 +3,7 @@
 **Status: NOT YET AVAILABLE in this repository.** No bathymetric survey grid or reservoir mesh geometry is currently included. This folder documents the gap rather than offering a placeholder file.
 
 ## Why it matters
-A Delft3D-FM (or any hydrodynamic/salinity transport) model needs an actual bed elevation grid — not just surface area vs. storage curves — to build its unstructured mesh, set initial wet/dry cells, and get residence-time and stratification behavior right. Reservoir bathymetry also directly determines the elevation-area-capacity curve TWDB uses to convert Red Bluff's measured water level into the storage/percent-full numbers in `water_levels/` — so a stale bathymetry indirectly biases the storage record too (sedimentation reduces both).
+A hydrodynamic/water-quality model needs an actual bed elevation grid — not just surface area vs. storage curves — to build its unstructured mesh, set initial wet/dry cells, and get residence-time and stratification behavior right. Reservoir bathymetry also directly determines the elevation-area-capacity curve TWDB uses to convert Red Bluff's measured water level into the storage/percent-full numbers in `water_levels/` — so a stale bathymetry indirectly biases the storage record too (sedimentation reduces both).
 
 ## What partial information already exists
 - `conservation_capacity` in `water_levels/redbluff_storage_water_level_08410000_daily.csv` has already dropped from 151,110 acre-ft (1937) to 145,165 acre-ft (since 2022) — TWDB's own periodic capacity-curve updates are themselves indirect evidence of resurveys, even though the underlying grid isn't published in that CSV.
@@ -19,5 +19,5 @@ Full hydrographic resurveys of Texas reservoirs are typically done on a multi-ye
 
 ## Proposed automation
 1. Query the TWDB Hydrographic Survey Program's public survey inventory/GIS index for "Red Bluff Reservoir" (manual check first — no confirmed public API for raw survey point clouds as of this writing).
-2. If a digital elevation model or survey point cloud is published, script a one-time (not recurring — bathymetry does not change fast enough to warrant automation) download and conversion to a Delft3D-FM-compatible grid (`.xyz` point file or `.asc`/GeoTIFF raster for `grid2fm`/mesh generation tools).
+2. If a digital elevation model or survey point cloud is published, script a one-time (not recurring — bathymetry does not change fast enough to warrant automation) download and conversion to a hydrodynamic/water-quality model-compatible grid (`.xyz` point file or `.asc`/GeoTIFF raster for `grid2fm`/mesh generation tools).
 3. Until then, use the elevation-capacity relationship implicit in `water_levels/` (water_level vs. storage_af, both real) as a coarse 1-D proxy for a reservoir-averaged storage model — not a substitute for a true bathymetric mesh.

@@ -13,8 +13,8 @@ Both pulled from USGS NWIS daily-values web service, parameter 00060 (discharge)
 
 **Delaware River is a real, separate inflow** joining the Pecos just above Red Bluff Reservoir. It was already added as a map marker on the companion Reuse Lab (August 2026, identified via the Pecos River Compact River Master's accounting report) — but not yet used by the SWAT+/gwflow calibration package, and not previously available as a standalone downloadable daily discharge series. That CSV is what this Hub adds.
 
-**Missing for a defensible Delft3D-FM inflow boundary:**
+**Missing for a defensible hydrodynamic/water-quality inflow boundary:**
 - **Ungaged local/direct drainage** between 08407500 and the reservoir headwater — no dedicated gage exists; likely source for an estimate: SWAT+/gwflow's own simulated tributary contribution once the model run covering this reach is finalized, or a drainage-area ratio scaling from 08407500.
-- **Inflow water temperature and salinity** (see `salinity/`) — needed to drive a coupled hydrodynamic-salinity Delft3D-FM run, not just water balance.
+- **Inflow water temperature and salinity** (see `salinity/`) — needed to drive a coupled hydrodynamic-salinity model run, not just water balance.
 
 **Update automation (proposed):** USGS NWIS daily-values are updated same-day (provisional) to a few days lag (approved); a scheduled pull (daily or weekly) via the same `waterservices.usgs.gov/nwis/dv` endpoint used to build these files would keep them current. Not yet automated.

@@ -8,7 +8,7 @@
 - The basin-wide USGS Pecos River Basin Salinity Assessment (Houston et al. 2019, DOI 10.5066/F7DB800T — already used in the companion Reuse Lab, 4,283 real TDS sites basin-wide) very likely includes sample sites at or near Red Bluff itself; this Hub has not yet filtered that release specifically for Red Bluff-area sites.
 
 ## Why it matters
-Any coupled Delft3D-FM salinity/transport run needs (a) inflow salinity boundary conditions for the Pecos and Delaware arms separately — since Delaware carries brine-influenced water — and (b) in-reservoir calibration targets (ideally a longitudinal or vertical salinity profile, or at minimum a time series at the dam). Neither currently exists as a ready-to-use file here.
+Any coupled hydrodynamic/water-quality salinity-transport run needs (a) inflow salinity boundary conditions for the Pecos and Delaware arms separately — since Delaware carries brine-influenced water — and (b) in-reservoir calibration targets (ideally a longitudinal or vertical salinity profile, or at minimum a time series at the dam). Neither currently exists as a ready-to-use file here.
 
 ## Likely source agencies
 - **USGS NWIS / Water Quality Portal** (waterqualitydata.us) — the historical discrete samples noted above; the legacy `nwis/qw` web service used elsewhere in this project has been retired, but the same records are queryable through the modern Water Quality Portal API.

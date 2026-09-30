@@ -62,6 +62,14 @@
   .flowdiag{display:flex;align-items:center;flex-wrap:wrap;gap:6px;font-size:.78rem;margin:10px 0;}
   .flowbox{background:var(--panel2);border:1px solid var(--acc);border-radius:8px;padding:8px 12px;color:var(--ink);font-weight:600;text-align:center;min-width:120px;}
   .flowarrow{color:var(--acc);font-size:1.1rem;}
+  .suite-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;}
+  .suite-card{display:flex;align-items:center;gap:10px;padding:9px 14px;border-radius:12px;background:var(--panel2);
+    border:1px solid var(--line);text-decoration:none;color:var(--ink);flex:1 1 220px;max-width:300px;}
+  .suite-card:hover{border-color:var(--acc);}
+  .suite-icon{width:34px;height:34px;border-radius:9px;
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .suite-title{font-weight:800;font-size:.85rem;}
+  .suite-sub{font-size:.68rem;color:var(--mut);margin-top:1px;}
 </style>
 </head>
 <body>
@@ -70,20 +78,30 @@
 <div class="sub">
   <span class="badge">Real data 1937–2026</span>
   <span class="badge">USGS · TWDB sourced</span>
-  <span class="badge">Delft3D-FM oriented</span>
   <span class="badge">Companion to the <a href="index.html" style="color:inherit">Reservoir Management &amp; Reuse Lab</a></span><br><br>
-  A dedicated resource for anyone building a hydrodynamic / salinity transport model of <b>Red Bluff Reservoir</b> — the
-  southernmost and most saline of the five major Pecos River reservoirs, on the Texas–New Mexico line. Every number on
-  this page traces to a cited source (USGS NWIS, TWDB) and is downloadable as a CSV. Where a dataset a real model would
-  need does <b>not</b> yet exist in this project, that is stated plainly — as an open, well-defined data gap with a
-  proposed source and automation plan — rather than filled with a placeholder that looks like real data. See
-  <a href="#" onclick="showTab('gaps');return false;">Data Downloads</a> for the full real-vs-gap inventory, and
-  <a href="#" onclick="showTab('twin');return false;">Digital Twin</a> for how this reservoir-scale hub is meant to plug
-  into the basin-scale SWAT+/gwflow model.
+  A dedicated resource for everything real that's known about <b>Red Bluff Reservoir</b> — the southernmost and most
+  saline of the five major Pecos River reservoirs, on the Texas–New Mexico line. Every number on this page traces to a
+  cited source (USGS NWIS, TWDB) and is downloadable as a CSV. Where a dataset a real hydrologic/water-quality model of
+  this reservoir would need does <b>not</b> yet exist in this project, that is stated plainly — as an open, well-defined
+  data gap with a proposed source and automation plan — rather than filled with a placeholder that looks like real data.
+  See <a href="#" onclick="showTab('gaps');return false;">Data Downloads</a> for the full real-vs-gap inventory.
   <br><br>
-  <span class="badge" style="background:transparent;border-style:dashed">Part of the Pecos modeling suite</span>
-  <a href="https://josephauresy.github.io/pecos-salinity-lab/" target="_blank" rel="noopener">Salinity Lab</a> (idealized teaching simulation) ·
-  <a href="https://josephauresy.github.io/pre_calibration_pecos/" target="_blank" rel="noopener">Pecos Model Ledger</a> (real SWAT+/gwflow calibration status)
+  <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:4px 0 10px">
+    <div style="background:#fff;border-radius:9px;width:92px;height:48px;display:flex;align-items:center;justify-content:center;padding:5px;flex-shrink:0"><img src="assets/logos/txpwc.png" alt="Texas Produced Water Consortium" style="max-width:78px;max-height:36px;width:auto;height:auto;object-fit:contain"></div>
+    <div style="background:#fff;border-radius:9px;width:92px;height:48px;display:flex;align-items:center;justify-content:center;padding:5px;flex-shrink:0"><img src="assets/logos/water_center.png" alt="Water &amp; the Environment Research Center" style="max-width:78px;max-height:36px;width:auto;height:auto;object-fit:contain"></div>
+    <div style="background:#fff;border-radius:9px;width:92px;height:48px;display:flex;align-items:center;justify-content:center;padding:5px;flex-shrink:0"><img src="assets/logos/ihydro_lab.png" alt="iHydro Lab" style="max-width:78px;max-height:36px;width:auto;height:auto;object-fit:contain"></div>
+  </div>
+  <span class="badge" style="background:transparent;border-style:dashed">Part of the Pecos modeling suite — you're on Reservoir</span>
+  <div class="suite-row">
+    <a class="suite-card" href="https://josephauresy.github.io/pecos-salinity-lab/" target="_blank" rel="noopener">
+      <div class="suite-icon" style="background:rgba(204,0,0,.14);color:#e0524a"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M12 2l7 5v10l-7 5-7-5V7z"/><path d="M12 2v20M5 7l7 5 7-5M5 17l7-5 7 5"/></svg></div>
+      <div><div class="suite-title">Salt</div><div class="suite-sub">Idealized teaching simulation</div></div>
+    </a>
+    <a class="suite-card" href="https://josephauresy.github.io/pre_calibration_pecos/" target="_blank" rel="noopener">
+      <div class="suite-icon" style="background:rgba(86,184,214,.14);color:#56b8d6"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 18a8 8 0 0 1 16 0"/><line x1="12" y1="18" x2="16" y2="10.5"/><circle cx="12" cy="18" r="1.3" fill="currentColor" stroke="none"/></svg></div>
+      <div><div class="suite-title">PreCal</div><div class="suite-sub">Real model calibration status</div></div>
+    </a>
+  </div>
 </div>
 
 <div class="tabs">
@@ -96,9 +114,7 @@
   <button class="tabbtn" data-tab="met">🌦️ Meteorology</button>
   <button class="tabbtn" data-tab="satellite">🛰️ Satellite</button>
   <button class="tabbtn" data-tab="studies">📚 Historical Studies</button>
-  <button class="tabbtn" data-tab="delft3d">🌊 Delft3D-FM Resources</button>
   <button class="tabbtn" data-tab="gaps">📥 Data Downloads</button>
-  <button class="tabbtn" data-tab="twin">🔗 Digital Twin</button>
 </div>
 
 <!-- ===================== OVERVIEW & MAP ===================== -->
@@ -130,14 +146,10 @@
     </div>
     <div class="panel grow" style="flex:1;min-width:260px;">
       <h2>Basin Position</h2>
-      <p class="note">Level 3 of the SWAT+GWFLOW → Delft3D-FM digital twin concept (see <a href="#" onclick="showTab('twin');return false;">Digital Twin</a> tab): the highest-resolution model in a 3-level nested hierarchy.</p>
-      <div class="flowdiag" style="flex-direction:column;align-items:stretch;">
-        <div class="flowbox">Level 1 · Watershed (SWAT+GWFLOW)</div>
-        <div class="flowarrow" style="text-align:center;">↓</div>
-        <div class="flowbox">Level 2 · 5-Reservoir Network</div>
-        <div class="flowarrow" style="text-align:center;">↓</div>
-        <div class="flowbox" style="border-color:var(--warn);color:var(--warn);">Level 3 · Red Bluff (Delft3D-FM)</div>
-      </div>
+      <p class="note">Red Bluff is the downstream-most of the 5 major Pecos dams this project models — every upstream
+        source (Malaga Bend brine, basin-wide evaporite salt, all 5 dams' management) ends up here unless something
+        removes or dilutes it first. See the <a href="index.html">Reservoir Management &amp; Reuse Lab</a> for the
+        other 4 dams and the full river system, and the <a href="https://josephauresy.github.io/pre_calibration_pecos/" target="_blank" rel="noopener">Pecos Model Ledger</a> for the basin-scale SWAT+/gwflow model's own calibration status.</p>
     </div>
   </div>
 
@@ -159,7 +171,7 @@
       <span class="tag gap">DATA GAP</span>
       <h4>No bathymetric survey grid or mesh-ready geometry in this repository yet</h4>
       <p class="note">
-        A Delft3D-FM mesh needs a real bed-elevation grid, not just a surface area/storage curve. What we do have:
+        A hydrodynamic model's mesh needs a real bed-elevation grid, not just a surface area/storage curve. What we do have:
         the conservation capacity implied by TWDB's own storage curve has already changed once in the real record —
         <b>151,110 acre-ft in 1937 → 145,165 acre-ft since 2022</b> — indirect evidence of at least one capacity-curve
         revision, but the underlying survey grid itself is not published in that file.
@@ -174,7 +186,7 @@
     <div class="card">
       <span class="tag gap">DATA GAP</span>
       <h4>Reservoir boundary / mesh geometry — approximate only</h4>
-      <p class="note">The map above draws a visualization-only outline. A real Delft3D-FM boundary needs an NHD or
+      <p class="note">The map above draws a visualization-only outline. A real model boundary needs an NHD or
         TWDB-survey-derived polygon plus dam/outlet structure geometry (spillway crest, outlet invert elevation).
         Full detail in <a href="data/red_bluff/geometry/README.md">data/red_bluff/geometry/README.md</a>.</p>
     </div>
@@ -282,7 +294,7 @@
     <div class="card"><span class="tag gap">DATA GAP</span>
       <h4>No continuous salinity/conductance record at Red Bluff Reservoir itself</h4>
       <p class="note">Checked directly against USGS NWIS (bounding-box query for continuous specific-conductance
-        stations near the reservoir): none found. A coupled Delft3D-FM salinity run currently has no in-reservoir
+        stations near the reservoir): none found. A coupled hydrodynamic salinity run currently has no in-reservoir
         calibration target beyond the sparse historical inflow-gage samples above. Full detail and proposed extraction
         plan (Water Quality Portal API, Houston et al. 2019 filtered to the Red Bluff area) in
         <a href="data/red_bluff/salinity/README.md">salinity/README.md</a>.</p>
@@ -303,7 +315,7 @@
     </div>
     <div class="card"><span class="tag gap">DATA GAP</span>
       <h4>No wind/radiation/humidity forcing extracted for the reservoir surface</h4>
-      <p class="note">Needed for a real surface heat/mixing budget in Delft3D-FM. Candidates: NLDAS-2 (hourly, 12 km,
+      <p class="note">Needed for a real surface heat/mixing budget in any reservoir hydrodynamic model. Candidates: NLDAS-2 (hourly, 12 km,
         since 1979), gridMET (daily, 4 km, since 1979), NOAA HRRR (hourly, 3 km, since 2014 only). Full comparison and
         proposed extraction plan in <a href="data/red_bluff/meteorology/README.md">meteorology/README.md</a>.</p>
     </div>
@@ -344,50 +356,6 @@
   </div>
 </div>
 
-<!-- ===================== DELFT3D-FM RESOURCES ===================== -->
-<div class="pane" id="tab-delft3d">
-  <div class="panel">
-    <h2>Delft3D-FM Starter Package</h2>
-    <p class="note">Generic, accurate technical orientation for a reservoir hydrodynamic/salinity model — not
-      Red-Bluff-specific tuning, which depends on the still-missing bathymetry (see Bathymetry &amp; Geometry tab).</p>
-
-    <h3>Required files</h3>
-    <ul class="note">
-      <li><b>Grid/mesh</b> — unstructured net file (<code>_net.nc</code>), built from a bathymetric point cloud or raster (missing, see Bathymetry tab)</li>
-      <li><b>Model definition</b> (<code>.mdu</code>) — physics, numerics, time control</li>
-      <li><b>Boundary conditions</b> (<code>.bc</code> / <code>.pli</code>) — water level or discharge at each open boundary (inflow/outflow points)</li>
-      <li><b>Meteorological forcing</b> (<code>.tim</code>/uniform or spatially-varying wind/radiation/humidity grids)</li>
-      <li><b>Initial conditions</b> — initial water level and, for a salinity run, an initial salinity field</li>
-      <li><b>Observation points</b> (<code>.xyn</code>) — for model-vs-data comparison at gage locations</li>
-    </ul>
-
-    <h3>Recommended formats</h3>
-    <ul class="note">
-      <li>Bathymetry: <code>.xyz</code> point file or GeoTIFF for mesh generation (RGFGRID / Delta Shell mesh tools)</li>
-      <li>Boundary time series: <code>.bc</code> (new format) preferred over legacy <code>.tim</code> for multi-quantity boundaries</li>
-      <li>Salinity boundary: paired with discharge/water-level boundary as a second quantity on the same <code>.pli</code></li>
-    </ul>
-
-    <h3>Model workflow (typical)</h3>
-    <div class="flowdiag">
-      <div class="flowbox">Bathymetry + boundary</div><div class="flowarrow">→</div>
-      <div class="flowbox">Mesh generation</div><div class="flowarrow">→</div>
-      <div class="flowbox">Hydrodynamic spin-up</div><div class="flowarrow">→</div>
-      <div class="flowbox">Add salinity transport</div><div class="flowarrow">→</div>
-      <div class="flowbox">Calibrate vs. gages</div>
-    </div>
-
-    <h3>Preprocessing steps</h3>
-    <ol class="note">
-      <li>Clip/merge bathymetry + boundary polygon to the reservoir extent (once available — see Bathymetry tab)</li>
-      <li>Generate an unstructured mesh, refined near the dam/outlet and the Pecos/Delaware confluence</li>
-      <li>Convert this Hub's daily inflow (Pecos + Delaware), outflow (release), and water-level CSVs into Delft3D-FM boundary-condition format</li>
-      <li>Convert meteorological forcing (once extracted, see Meteorology tab) into FM's external forcing format</li>
-      <li>Set a spin-up period long enough for initial-condition effects to damp out before evaluating results against real gage data</li>
-    </ol>
-  </div>
-</div>
-
 <!-- ===================== DATA DOWNLOADS ===================== -->
 <div class="pane" id="tab-gaps">
   <div class="panel">
@@ -407,71 +375,6 @@
       <div class="card"><span class="tag gap">GAP</span><h4>Satellite Observations</h4><p class="note">Nothing processed yet</p><a class="dlbtn gap" href="data/red_bluff/satellite/README.md">📄 Plan</a></div>
       <div class="card"><span class="tag gap">LEAD</span><h4>Historical Studies</h4><p class="note">1 confirmed citation, others flagged as leads</p><a class="dlbtn gap" href="data/red_bluff/literature/README.md">📄 List</a></div>
     </div>
-  </div>
-</div>
-
-<!-- ===================== DIGITAL TWIN ===================== -->
-<div class="pane" id="tab-twin">
-  <div class="panel">
-    <h2>Integrated SWAT+GWFLOW → Delft3D-FM Digital Twin</h2>
-    <p class="note"><b>Status: roadmap / architecture vision — not yet implemented.</b> Nothing on this tab is a running
-      coupled model; it documents how the pieces that already exist (SWAT+/gwflow basin model, this project's 5-reservoir
-      network, this new Red Bluff Hub) are meant to connect, and what is still needed to actually couple them.</p>
-
-    <h3>Purpose</h3>
-    <p class="note">Connect watershed-scale salinity generation (SWAT+/gwflow, calibrated basin-wide) with reservoir-scale
-      salinity dynamics (Delft3D-FM at Red Bluff) so that a change upstream — a new produced-water reuse discharge, a
-      change in Malaga Bend brine flux, a wet/dry year — can be traced through to its effect on water actually delivered
-      downstream of Red Bluff.</p>
-
-    <h3>Workflow</h3>
-    <div class="flowdiag" style="flex-direction:column;align-items:stretch;">
-      <div class="flowbox">Watershed (SWAT+/GWFLOW)</div>
-      <div class="flowarrow" style="text-align:center;">↓ simulated salt load + flow</div>
-      <div class="flowbox">Reservoir Inflows (5-reservoir network, incl. this Hub's real Pecos + Delaware series)</div>
-      <div class="flowarrow" style="text-align:center;">↓ boundary conditions</div>
-      <div class="flowbox" style="border-color:var(--warn);color:var(--warn);">Delft3D-FM (Red Bluff, high-resolution)</div>
-      <div class="flowarrow" style="text-align:center;">↓ resolved 3-D/2-D mixing</div>
-      <div class="flowbox">Within-Reservoir Salinity Dynamics</div>
-      <div class="flowarrow" style="text-align:center;">↓ outlet concentration</div>
-      <div class="flowbox">Water Delivery Salinity</div>
-    </div>
-
-    <h3>3-Level Hierarchy</h3>
-    <table>
-      <tr><th>Level</th><th>Scope</th><th>Model</th><th>Status</th></tr>
-      <tr><td>1</td><td>Watershed processes</td><td>SWAT+/GWFLOW</td><td>Salt transport run exists (v52_prod, 26 yr) — "ready with caveats," not calibrated; see Salinity &amp; WQ tab</td></tr>
-      <tr><td>2</td><td>Reservoir network (5 reservoirs)</td><td>SWAT+ reservoir routing + observed data (this Hub's companion Reuse Lab)</td><td>Real data integrated, 1937/2000–2026 depending on reservoir</td></tr>
-      <tr><td>3</td><td>Red Bluff high-resolution</td><td>Delft3D-FM</td><td>Not started — this Hub is the data-readiness layer for it</td></tr>
-    </table>
-
-    <h3>Data Exchange Framework (proposed)</h3>
-    <table>
-      <tr><th>From</th><th>To</th><th>Variable(s)</th><th>Frequency</th><th>Status</th></tr>
-      <tr><td>SWAT+/GWFLOW</td><td>Reservoir network</td><td>Simulated tributary inflow, salt/solute load</td><td>Daily</td><td>Salt load simulated (v52_prod) but 3.0–3.6× biased high at Red Bluff — not yet calibrated for handoff</td></tr>
-      <tr><td>Reservoir network</td><td>Delft3D-FM</td><td>Pecos + Delaware inflow (real, this Hub), release (real, this Hub), water level (real, this Hub)</td><td>Daily</td><td>Ready — real data available now</td></tr>
-      <tr><td>Delft3D-FM</td><td>Downstream / reporting</td><td>Outlet salinity concentration, temperature</td><td>Sub-daily to daily</td><td>Requires model build (bathymetry gap)</td></tr>
-    </table>
-
-    <h3>Input–Output Summary</h3>
-    <div class="grid2">
-      <div class="card"><h4>Inputs ready now</h4><p class="note">Pecos inflow, Delaware inflow, storage/water level, outflow (2000–2020) — all real, all on this page.</p></div>
-      <div class="card"><h4>Inputs still needed</h4><p class="note">Bathymetry/mesh, reservoir-surface meteorology, inflow salinity boundary, in-reservoir salinity calibration target.</p></div>
-    </div>
-
-    <h3>Visualization Dashboard</h3>
-    <p class="note">The Water Levels / Inflows / Outflows tabs on this page already function as the first real dashboard
-      layer (real monthly time series, 1937–2026 where available). A true digital-twin dashboard would add a live
-      Delft3D-FM output panel once Level 3 exists — not built yet.</p>
-
-    <h3>Future Roadmap</h3>
-    <ol class="note">
-      <li>Close the bathymetry/geometry gap (highest-priority blocker for any real Delft3D-FM run)</li>
-      <li>Extract inflow salinity boundary conditions (Water Quality Portal + Houston et al. 2019, filtered to Red Bluff)</li>
-      <li>Build and spin up a first Delft3D-FM hydrodynamic-only run against the real water-level record on this page</li>
-      <li>Add salinity transport once boundary salinity data exists</li>
-      <li>Wire Level 1 (SWAT+/GWFLOW) output directly into Level 2/3 as the basin model matures</li>
-    </ol>
   </div>
 </div>
 

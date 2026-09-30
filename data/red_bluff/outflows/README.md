@@ -12,4 +12,4 @@
 
 **Recommended next step:** identify the original source/agency for `obs_release_RedBluff.csv` (documented in the parent SWAT+/gwflow project, not re-derived here) and re-run the same extraction through the present. If it turns out to trace back to a USGS gage with a `dv` service (like 08407500/08408500 above), the same NWIS pull pattern used for `inflows/` applies directly.
 
-**Recommended use in Delft3D-FM:** outflow is a direct discharge boundary condition at the dam/outlet structure; combine with `water_levels/` and `inflows/` for a closed water balance check before trusting any of the three in a calibration run.
+**Recommended use in a hydrodynamic/water-quality model:** outflow is a direct discharge boundary condition at the dam/outlet structure; combine with `water_levels/` and `inflows/` for a closed water balance check before trusting any of the three in a calibration run.
